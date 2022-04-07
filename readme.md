@@ -3,7 +3,7 @@ MeshCentral Satellite
 
 For more information, [visit MeshCentral.com](https://www.meshcentral.com).
 
-MeshCentral Satellite is a Windows application that can run as a normal application or as a backgound Windows service. Once setup to connect to MeshCentral it will automatically create 802.1x profiles in the domain controller for Intel AMT devices and can use a certificate authority in your domain to issue 802.1x certificates to Intel AMT.
+MeshCentral Satellite is a Windows application that can run as a normal application or as a background Windows service. Once setup to connect to MeshCentral it will automatically create 802.1x profiles in the domain controller for Intel AMT devices and can use a certificate authority in your domain to issue 802.1x certificates to Intel AMT.
 
 ## MeshCentral Configuration
 
@@ -78,7 +78,7 @@ Once MeshCentral Satellite is setup, you can have a config.json that looks like 
 
 In the example above, MeshCentral will configure 802.1x for the wired interface and for 2 of the 3 WIFI profiles. AP-SSID-1 and AP-SSID-2 are set to authenticate using 802.1x and AP-SSID-3 is setup with regular WPA2 password authentication.
 
-What makes this 802.1x configuration interesting is the line "SatelliteCredentials". This indicates a MeshCentral Satelite will be connected with the user account name "satelliteUser" and to query it to setup a 802.1x profile in the Windows domain controller and issue a 802.1x authentication certificate to Intel AMT.
+What makes this 802.1x configuration interesting is the line "SatelliteCredentials". This indicates a MeshCentral Satellite will be connected with the user account name "satelliteUser" and to query it to setup a 802.1x profile in the Windows domain controller and issue a 802.1x authentication certificate to Intel AMT.
 
 Another example is this:
 
@@ -110,19 +110,19 @@ Another example is this:
 In this example, the Intel AMT wired interface is configured with 802.1x along with a single WIFI profile. This time, instead of EAP-TLS being used for authentication, PEAPv0/EAP-MSCHAPv2 will be used. MeshCentral Satellite will be queried, but this time, a 802.1x account will be created in the domain with a username and random password. The password will be sent back to MeshCentral and set into Intel AMT.
 
 ## MeshCentral Satellite Setup
-You need to run MeshCentral Satellite on a computer that is joined to your domain and run it with suffisent rights that it can create LDAP computer objects and have access to the domain Certificate Authority so it can request that certificates be signed.
+You need to run MeshCentral Satellite on a computer that is joined to your domain and run it with sufficient rights that it can create LDAP computer objects and have access to the domain Certificate Authority so it can request that certificates be signed.
 
-You will probably want to run MeshCentral Satellite as a normal Windows application at first to make sure everthing works before running it as a background Windows service. You can start by going in the "Settings" option in the menus and setting up the MeshCentral server's host name and login username and password. You also need to setup that certificate authority to use and certificate template. If a certificate autheority is not setup, only PEAPv0/EAP-MSCHAPv2 will be supported.
+You will probably want to run MeshCentral Satellite as a normal Windows application at first to make sure everything works before running it as a background Windows service. You can start by going in the "Settings" option in the menus and setting up the MeshCentral server's host name and login username and password. You also need to setup that certificate authority to use and certificate template. If a certificate authority is not setup, only PEAPv0/EAP-MSCHAPv2 will be supported.
 
 You can also indicate what domain security groups a computer must be joined to when a new 802.1x computer is created.
 
-Once done, you can login to MeshCentral and the MeshCentral Satelite is ready to receive requests. You can use the "Testing" menu to create and remove a test computer from the domain. This is useful to make sure everything is working well before getting requests from MeshCentral.
+Once done, you can login to MeshCentral and the MeshCentral Satellite is ready to receive requests. You can use the "Testing" menu to create and remove a test computer from the domain. This is useful to make sure everything is working well before getting requests from MeshCentral.
 
 
 ## Video Tutorials
 You can watch many tutorial videos on the [MeshCentral YouTube Channel](https://www.youtube.com/channel/UCJWz607A8EVlkilzcrb-GKg/videos). There is one video on how to setup Intel AMT with 802.1x without MeshCentral Satellite, this is a good way to get started.
 
-Installing MeshCentral on Windows, Linux and macOS.  
+Basic Intel AMT 802.1x with JumpCloud.  
 [![MeshCentral - Basic Intel AMT 802.1x with JumpCloud](https://img.youtube.com/vi/tKI9UJ1O15M/mqdefault.jpg)](https://www.youtube.com/watch?v=tKI9UJ1O15M)
 
 ## Feedback
