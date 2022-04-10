@@ -30,8 +30,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.logCheckBox = new System.Windows.Forms.CheckBox();
-            this.debugCheckBox = new System.Windows.Forms.CheckBox();
             this.skipTlsCheckBox = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -39,22 +37,41 @@
             this.passTextBox = new System.Windows.Forms.TextBox();
             this.userTextBox = new System.Windows.Forms.TextBox();
             this.hostTextBox = new System.Windows.Forms.TextBox();
-            this.cancelButton = new System.Windows.Forms.Button();
-            this.okButton = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.caTextBox = new System.Windows.Forms.TextBox();
+            this.logCheckBox = new System.Windows.Forms.CheckBox();
+            this.debugCheckBox = new System.Windows.Forms.CheckBox();
+            this.cancelButton = new System.Windows.Forms.Button();
+            this.okButton = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.templateComboBox = new System.Windows.Forms.ComboBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.checkCaButton = new System.Windows.Forms.Button();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.certCommonNameComboBox = new System.Windows.Forms.ComboBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.uuidCheckBox = new System.Windows.Forms.CheckBox();
+            this.samCheckBox = new System.Windows.Forms.CheckBox();
+            this.userCheckBox = new System.Windows.Forms.CheckBox();
+            this.hostCheckBox = new System.Windows.Forms.CheckBox();
+            this.dnsCheckBox = new System.Windows.Forms.CheckBox();
+            this.dnCheckBox = new System.Windows.Forms.CheckBox();
+            this.devNameComboBox = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.caTextBox);
-            this.groupBox1.Controls.Add(this.logCheckBox);
-            this.groupBox1.Controls.Add(this.debugCheckBox);
+            this.groupBox1.Controls.Add(this.label8);
+            this.groupBox1.Controls.Add(this.devNameComboBox);
             this.groupBox1.Controls.Add(this.skipTlsCheckBox);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
@@ -64,35 +81,15 @@
             this.groupBox1.Controls.Add(this.hostTextBox);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(296, 193);
+            this.groupBox1.Size = new System.Drawing.Size(332, 147);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Service Settings";
-            // 
-            // logCheckBox
-            // 
-            this.logCheckBox.AutoSize = true;
-            this.logCheckBox.Location = new System.Drawing.Point(116, 145);
-            this.logCheckBox.Name = "logCheckBox";
-            this.logCheckBox.Size = new System.Drawing.Size(82, 17);
-            this.logCheckBox.TabIndex = 7;
-            this.logCheckBox.Text = "Write log.txt";
-            this.logCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // debugCheckBox
-            // 
-            this.debugCheckBox.AutoSize = true;
-            this.debugCheckBox.Location = new System.Drawing.Point(116, 169);
-            this.debugCheckBox.Name = "debugCheckBox";
-            this.debugCheckBox.Size = new System.Drawing.Size(98, 17);
-            this.debugCheckBox.TabIndex = 8;
-            this.debugCheckBox.Text = "Write debug.txt";
-            this.debugCheckBox.UseVisualStyleBackColor = true;
+            this.groupBox1.Text = "MeshCentral Login";
             // 
             // skipTlsCheckBox
             // 
             this.skipTlsCheckBox.AutoSize = true;
-            this.skipTlsCheckBox.Location = new System.Drawing.Point(116, 122);
+            this.skipTlsCheckBox.Location = new System.Drawing.Point(116, 125);
             this.skipTlsCheckBox.Name = "skipTlsCheckBox";
             this.skipTlsCheckBox.Size = new System.Drawing.Size(152, 17);
             this.skipTlsCheckBox.TabIndex = 6;
@@ -134,7 +131,7 @@
             this.passTextBox.Location = new System.Drawing.Point(116, 72);
             this.passTextBox.Name = "passTextBox";
             this.passTextBox.PasswordChar = '';
-            this.passTextBox.Size = new System.Drawing.Size(175, 20);
+            this.passTextBox.Size = new System.Drawing.Size(211, 20);
             this.passTextBox.TabIndex = 2;
             this.passTextBox.TextChanged += new System.EventHandler(this.hostTextBox_TextChanged);
             this.passTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.hostTextBox_KeyUp);
@@ -145,7 +142,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.userTextBox.Location = new System.Drawing.Point(116, 46);
             this.userTextBox.Name = "userTextBox";
-            this.userTextBox.Size = new System.Drawing.Size(175, 20);
+            this.userTextBox.Size = new System.Drawing.Size(211, 20);
             this.userTextBox.TabIndex = 1;
             this.userTextBox.TextChanged += new System.EventHandler(this.hostTextBox_TextChanged);
             this.userTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.hostTextBox_KeyUp);
@@ -156,16 +153,56 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.hostTextBox.Location = new System.Drawing.Point(116, 20);
             this.hostTextBox.Name = "hostTextBox";
-            this.hostTextBox.Size = new System.Drawing.Size(175, 20);
+            this.hostTextBox.Size = new System.Drawing.Size(211, 20);
             this.hostTextBox.TabIndex = 0;
             this.hostTextBox.TextChanged += new System.EventHandler(this.hostTextBox_TextChanged);
             this.hostTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.hostTextBox_KeyUp);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(7, 26);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(79, 13);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "Authority Name";
+            // 
+            // caTextBox
+            // 
+            this.caTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.caTextBox.Location = new System.Drawing.Point(117, 24);
+            this.caTextBox.Name = "caTextBox";
+            this.caTextBox.Size = new System.Drawing.Size(179, 20);
+            this.caTextBox.TabIndex = 9;
+            this.caTextBox.TextChanged += new System.EventHandler(this.hostTextBox_TextChanged);
+            this.caTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.hostTextBox_KeyUp);
+            // 
+            // logCheckBox
+            // 
+            this.logCheckBox.AutoSize = true;
+            this.logCheckBox.Location = new System.Drawing.Point(10, 28);
+            this.logCheckBox.Name = "logCheckBox";
+            this.logCheckBox.Size = new System.Drawing.Size(82, 17);
+            this.logCheckBox.TabIndex = 7;
+            this.logCheckBox.Text = "Write log.txt";
+            this.logCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // debugCheckBox
+            // 
+            this.debugCheckBox.AutoSize = true;
+            this.debugCheckBox.Location = new System.Drawing.Point(184, 28);
+            this.debugCheckBox.Name = "debugCheckBox";
+            this.debugCheckBox.Size = new System.Drawing.Size(98, 17);
+            this.debugCheckBox.TabIndex = 8;
+            this.debugCheckBox.Text = "Write debug.txt";
+            this.debugCheckBox.UseVisualStyleBackColor = true;
             // 
             // cancelButton
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(233, 212);
+            this.cancelButton.Location = new System.Drawing.Point(269, 470);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 10;
@@ -176,7 +213,7 @@
             // okButton
             // 
             this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.okButton.Location = new System.Drawing.Point(152, 212);
+            this.okButton.Location = new System.Drawing.Point(188, 470);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 9;
@@ -184,25 +221,218 @@
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
             // 
-            // label4
+            // label5
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 99);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(98, 13);
-            this.label4.TabIndex = 10;
-            this.label4.Text = "Certificate Authority";
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(7, 52);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(51, 13);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "Template";
             // 
-            // caTextBox
+            // templateComboBox
             // 
-            this.caTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.templateComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.caTextBox.Location = new System.Drawing.Point(116, 97);
-            this.caTextBox.Name = "caTextBox";
-            this.caTextBox.Size = new System.Drawing.Size(175, 20);
-            this.caTextBox.TabIndex = 9;
-            this.caTextBox.TextChanged += new System.EventHandler(this.hostTextBox_TextChanged);
-            this.caTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.hostTextBox_KeyUp);
+            this.templateComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.templateComboBox.FormattingEnabled = true;
+            this.templateComboBox.Location = new System.Drawing.Point(117, 49);
+            this.templateComboBox.Name = "templateComboBox";
+            this.templateComboBox.Size = new System.Drawing.Size(209, 21);
+            this.templateComboBox.TabIndex = 13;
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.checkCaButton);
+            this.groupBox2.Controls.Add(this.templateComboBox);
+            this.groupBox2.Controls.Add(this.label5);
+            this.groupBox2.Controls.Add(this.caTextBox);
+            this.groupBox2.Controls.Add(this.label4);
+            this.groupBox2.Location = new System.Drawing.Point(12, 165);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(332, 82);
+            this.groupBox2.TabIndex = 11;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Certificate Authority";
+            // 
+            // checkCaButton
+            // 
+            this.checkCaButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkCaButton.Font = new System.Drawing.Font("Wingdings", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(2)));
+            this.checkCaButton.Location = new System.Drawing.Point(300, 24);
+            this.checkCaButton.Name = "checkCaButton";
+            this.checkCaButton.Size = new System.Drawing.Size(26, 20);
+            this.checkCaButton.TabIndex = 7;
+            this.checkCaButton.Text = "";
+            this.checkCaButton.UseVisualStyleBackColor = true;
+            this.checkCaButton.Click += new System.EventHandler(this.checkCaButton_Click);
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox3.Controls.Add(this.logCheckBox);
+            this.groupBox3.Controls.Add(this.debugCheckBox);
+            this.groupBox3.Location = new System.Drawing.Point(12, 406);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(332, 55);
+            this.groupBox3.TabIndex = 12;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Logging";
+            // 
+            // certCommonNameComboBox
+            // 
+            this.certCommonNameComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.certCommonNameComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.certCommonNameComboBox.FormattingEnabled = true;
+            this.certCommonNameComboBox.Items.AddRange(new object[] {
+            "Distinguished Name",
+            "DNS FQDN",
+            "Hostname",
+            "User Principal Name",
+            "SAM Account Name",
+            "UUID"});
+            this.certCommonNameComboBox.Location = new System.Drawing.Point(118, 19);
+            this.certCommonNameComboBox.Name = "certCommonNameComboBox";
+            this.certCommonNameComboBox.Size = new System.Drawing.Size(208, 21);
+            this.certCommonNameComboBox.TabIndex = 13;
+            this.certCommonNameComboBox.SelectedIndexChanged += new System.EventHandler(this.hostTextBox_TextChanged);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(7, 22);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(79, 13);
+            this.label6.TabIndex = 14;
+            this.label6.Text = "Common Name";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox4.Controls.Add(this.label7);
+            this.groupBox4.Controls.Add(this.certCommonNameComboBox);
+            this.groupBox4.Controls.Add(this.label6);
+            this.groupBox4.Controls.Add(this.uuidCheckBox);
+            this.groupBox4.Controls.Add(this.samCheckBox);
+            this.groupBox4.Controls.Add(this.userCheckBox);
+            this.groupBox4.Controls.Add(this.hostCheckBox);
+            this.groupBox4.Controls.Add(this.dnsCheckBox);
+            this.groupBox4.Controls.Add(this.dnCheckBox);
+            this.groupBox4.Location = new System.Drawing.Point(12, 253);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(332, 147);
+            this.groupBox4.TabIndex = 15;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Certificate Configuration";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(7, 51);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(93, 13);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "Alternative Names";
+            // 
+            // uuidCheckBox
+            // 
+            this.uuidCheckBox.AutoSize = true;
+            this.uuidCheckBox.Checked = true;
+            this.uuidCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.uuidCheckBox.Location = new System.Drawing.Point(183, 121);
+            this.uuidCheckBox.Name = "uuidCheckBox";
+            this.uuidCheckBox.Size = new System.Drawing.Size(53, 17);
+            this.uuidCheckBox.TabIndex = 7;
+            this.uuidCheckBox.Text = "UUID";
+            this.uuidCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // samCheckBox
+            // 
+            this.samCheckBox.AutoSize = true;
+            this.samCheckBox.Checked = true;
+            this.samCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.samCheckBox.Location = new System.Drawing.Point(183, 98);
+            this.samCheckBox.Name = "samCheckBox";
+            this.samCheckBox.Size = new System.Drawing.Size(123, 17);
+            this.samCheckBox.TabIndex = 6;
+            this.samCheckBox.Text = "SAM Account Name";
+            this.samCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // userCheckBox
+            // 
+            this.userCheckBox.AutoSize = true;
+            this.userCheckBox.Checked = true;
+            this.userCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.userCheckBox.Location = new System.Drawing.Point(183, 75);
+            this.userCheckBox.Name = "userCheckBox";
+            this.userCheckBox.Size = new System.Drawing.Size(122, 17);
+            this.userCheckBox.TabIndex = 5;
+            this.userCheckBox.Text = "User Principal Name";
+            this.userCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // hostCheckBox
+            // 
+            this.hostCheckBox.AutoSize = true;
+            this.hostCheckBox.Checked = true;
+            this.hostCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.hostCheckBox.Location = new System.Drawing.Point(9, 121);
+            this.hostCheckBox.Name = "hostCheckBox";
+            this.hostCheckBox.Size = new System.Drawing.Size(74, 17);
+            this.hostCheckBox.TabIndex = 4;
+            this.hostCheckBox.Text = "Hostname";
+            this.hostCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // dnsCheckBox
+            // 
+            this.dnsCheckBox.AutoSize = true;
+            this.dnsCheckBox.Checked = true;
+            this.dnsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.dnsCheckBox.Location = new System.Drawing.Point(9, 98);
+            this.dnsCheckBox.Name = "dnsCheckBox";
+            this.dnsCheckBox.Size = new System.Drawing.Size(82, 17);
+            this.dnsCheckBox.TabIndex = 3;
+            this.dnsCheckBox.Text = "DNS FQDN";
+            this.dnsCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // dnCheckBox
+            // 
+            this.dnCheckBox.AutoSize = true;
+            this.dnCheckBox.Checked = true;
+            this.dnCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.dnCheckBox.Location = new System.Drawing.Point(9, 75);
+            this.dnCheckBox.Name = "dnCheckBox";
+            this.dnCheckBox.Size = new System.Drawing.Size(120, 17);
+            this.dnCheckBox.TabIndex = 2;
+            this.dnCheckBox.Text = "Distinguished Name";
+            this.dnCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // devNameComboBox
+            // 
+            this.devNameComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.devNameComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.devNameComboBox.FormattingEnabled = true;
+            this.devNameComboBox.Items.AddRange(new object[] {
+            "Operating System Name",
+            "Node Identifier"});
+            this.devNameComboBox.Location = new System.Drawing.Point(116, 98);
+            this.devNameComboBox.Name = "devNameComboBox";
+            this.devNameComboBox.Size = new System.Drawing.Size(211, 21);
+            this.devNameComboBox.TabIndex = 14;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(7, 101);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(72, 13);
+            this.label8.TabIndex = 15;
+            this.label8.Text = "Device Name";
             // 
             // SettingsForm
             // 
@@ -210,7 +440,10 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(320, 247);
+            this.ClientSize = new System.Drawing.Size(356, 505);
+            this.Controls.Add(this.groupBox4);
+            this.Controls.Add(this.groupBox3);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.groupBox1);
@@ -222,6 +455,12 @@
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -242,5 +481,22 @@
         private System.Windows.Forms.CheckBox logCheckBox;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox caTextBox;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ComboBox templateComboBox;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.ComboBox certCommonNameComboBox;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.CheckBox uuidCheckBox;
+        private System.Windows.Forms.CheckBox samCheckBox;
+        private System.Windows.Forms.CheckBox userCheckBox;
+        private System.Windows.Forms.CheckBox hostCheckBox;
+        private System.Windows.Forms.CheckBox dnsCheckBox;
+        private System.Windows.Forms.CheckBox dnCheckBox;
+        private System.Windows.Forms.Button checkCaButton;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox devNameComboBox;
     }
 }
