@@ -80,10 +80,14 @@ namespace MeshCentralSatellite
         // Start the actual manageability server
         public void StartServer()
         {
-            string argCA = null;
             string argServerName = null;
             string argUserName = null;
             string argPassword = null;
+            string argDevNameType = null;
+            string argCAName = null;
+            string argCATemplate = null;
+            string argCertCommonName = null;
+            string argCertAltNames = null;
 
             // Set TLS 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -113,7 +117,11 @@ namespace MeshCentralSatellite
                         if (key == "host") { argServerName = val; argflags |= 1; }
                         if (key == "user") { argUserName = val; argflags |= 2; }
                         if (key == "pass") { argPassword = val; argflags |= 4; }
-                        if (key == "ca") { argCA = val; }
+                        if (key == "devnametype") { argDevNameType = val; }
+                        if (key == "caname") { argCAName = val; }
+                        if (key == "catemplate") { argCATemplate = val; }
+                        if (key == "certcommonname") { argCertCommonName = val; }
+                        if (key == "certaltnames") { argCertAltNames = val; }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { ignoreCert = true; }
@@ -133,12 +141,13 @@ namespace MeshCentralSatellite
             {
                 // Create & start server
                 centralServer = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
+                centralServer.devNameType = argDevNameType;
                 centralServer.debug = debug;
                 centralServer.onStateChanged += CentralServer_onStateChanged;
                 centralServer.onMessage += CentralServer_onMessage;
                 centralServer.onEvent += CentralServer_onEvent;
                 centralServer.ignoreCert = ignoreCert;
-                centralServer.SetCertificateAuthority(argCA);
+                centralServer.SetCertificateAuthority(argCAName, argCATemplate, argCertCommonName, argCertAltNames);
                 centralServer.Start();
             }
             catch (Exception ex)

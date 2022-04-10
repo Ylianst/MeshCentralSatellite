@@ -16,6 +16,7 @@ limitations under the License.
 
 using System;
 using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using Interop.CERTADMLib;
@@ -98,7 +99,7 @@ namespace MeshCentralSatellite
             AMTVNCKVM
         }
 
-        public static string GenerateNullCsr(string distinguishedName, Dictionary<CommonNameTypes, string> extras, string templateName, CommonNameTypes designatedSubject, byte[] publicKey)
+        public static string GenerateNullCsr(CX500DistinguishedName subject, Dictionary<CommonNameTypes, string> extras, string templateName, byte[] publicKey)
         {
             IX509CertificateRequestPkcs10 objPkcs10 = (IX509CertificateRequestPkcs10)Activator.CreateInstance(Type.GetTypeFromProgID("X509Enrollment.CX509CertificateRequestPkcs10"));
 
@@ -109,17 +110,21 @@ namespace MeshCentralSatellite
                 requestPkcs10.InitializeFromPublicKey(X509CertificateEnrollmentContext.ContextUser, publicKeyObject, templateName);
                 var innerRequestPkcs10 = (IX509CertificateRequestPkcs10)requestPkcs10.GetInnerRequest(InnerRequestLevel.LevelInnermost);
 
-                innerRequestPkcs10.Subject = GetX500DistinguishedName(designatedSubject, distinguishedName, extras);
+                innerRequestPkcs10.Subject = subject;
 
+                int altNamesCount = 0;
                 var objAlternativeNames = new CAlternativeNames();
-                AddCommonAlternativeNames(extras, objAlternativeNames);
-                AddSpnAlternativeNames(extras, objAlternativeNames);
+                altNamesCount += AddCommonAlternativeNames(extras, objAlternativeNames);
+                altNamesCount += AddSpnAlternativeNames(extras, objAlternativeNames);
 
-                var extensionAlternativeNames = new CX509ExtensionAlternativeNames();
-                extensionAlternativeNames.InitializeEncode(objAlternativeNames);
+                if (altNamesCount > 0)
+                {
+                    var extensionAlternativeNames = new CX509ExtensionAlternativeNames();
+                    extensionAlternativeNames.InitializeEncode(objAlternativeNames);
+                    // ReSharper disable once SuspiciousTypeConversion.Global
+                    innerRequestPkcs10.X509Extensions.Add((CX509Extension)extensionAlternativeNames);
+                }
 
-                // ReSharper disable once SuspiciousTypeConversion.Global
-                innerRequestPkcs10.X509Extensions.Add((CX509Extension)extensionAlternativeNames);
                 innerRequestPkcs10.Encode();
 
                 return innerRequestPkcs10.RawData;
@@ -159,47 +164,53 @@ namespace MeshCentralSatellite
         /// </summary>
         /// <param name="commonNames">Common names to be added</param>
         /// <param name="objAlternativeNames">Target object</param>
-        private static void AddCommonAlternativeNames(Dictionary<CommonNameTypes, string> commonNames, CAlternativeNames objAlternativeNames)
+        private static int AddCommonAlternativeNames(Dictionary<CommonNameTypes, string> commonNames, CAlternativeNames objAlternativeNames)
         {
-            if (commonNames == null) return;
+            int r = 0;
+            if (commonNames == null) return r;
             if (commonNames.ContainsKey(CommonNameTypes.DistinguishedName))
             {
                 var alternativeName = new CAlternativeName();
                 alternativeName.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_URL, $"LDAP://{commonNames[CommonNameTypes.DistinguishedName]}");
                 objAlternativeNames.Add(alternativeName);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.DNSFQDN))
             {
                 var dnsFqdn = new CAlternativeName();
                 dnsFqdn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_DNS_NAME, commonNames[CommonNameTypes.DNSFQDN]);
                 objAlternativeNames.Add(dnsFqdn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.Hostname))
             {
                 var hostname = new CAlternativeName();
                 hostname.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_DNS_NAME, commonNames[CommonNameTypes.Hostname]);
                 objAlternativeNames.Add(hostname);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.SAMAccountName))
             {
                 var samAccountName = new CAlternativeName();
-                samAccountName.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_DNS_NAME,
-                    commonNames[CommonNameTypes.SAMAccountName]);
+                samAccountName.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_DNS_NAME, commonNames[CommonNameTypes.SAMAccountName]);
                 objAlternativeNames.Add(samAccountName);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.UUID))
             {
                 var uuid = new CAlternativeName();
                 uuid.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_DNS_NAME, commonNames[CommonNameTypes.UUID]);
                 objAlternativeNames.Add(uuid);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.UserPrincipalName))
             {
                 var userPrincipalName = new CAlternativeName();
-                userPrincipalName.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME,
-                    commonNames[CommonNameTypes.UserPrincipalName]);
+                userPrincipalName.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.UserPrincipalName]);
                 objAlternativeNames.Add(userPrincipalName);
+                r++;
             }
+            return r;
         }
 
         /// <summary>
@@ -241,8 +252,10 @@ namespace MeshCentralSatellite
             return objDistinguishedName;
         }
 
-        private static void AddSpnAlternativeNames(Dictionary<CommonNameTypes, string> commonNames, CAlternativeNames objAlternativeNames)
+        private static int AddSpnAlternativeNames(Dictionary<CommonNameTypes, string> commonNames, CAlternativeNames objAlternativeNames)
         {
+            int r = 0;
+
             // Add AMT SPNs
             if (commonNames.ContainsKey(CommonNameTypes.AMTHTTP))
             {
@@ -250,6 +263,7 @@ namespace MeshCentralSatellite
                 var amtHttpSpn = new CAlternativeName();
                 amtHttpSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTHTTP]);
                 objAlternativeNames.Add(amtHttpSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTHTTPS))
             {
@@ -257,6 +271,7 @@ namespace MeshCentralSatellite
                 var amtHttpsSpn = new CAlternativeName();
                 amtHttpsSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTHTTPS]);
                 objAlternativeNames.Add(amtHttpsSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTRMCP))
             {
@@ -264,6 +279,7 @@ namespace MeshCentralSatellite
                 var amtRmcpSpn = new CAlternativeName();
                 amtRmcpSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTRMCP]);
                 objAlternativeNames.Add(amtRmcpSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTSecureRMCP))
             {
@@ -271,6 +287,7 @@ namespace MeshCentralSatellite
                 var amtSecureRmcpSpn = new CAlternativeName();
                 amtSecureRmcpSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTSecureRMCP]);
                 objAlternativeNames.Add(amtSecureRmcpSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTTCPRedirect))
             {
@@ -278,6 +295,7 @@ namespace MeshCentralSatellite
                 var amtTcpRedirectSpn = new CAlternativeName();
                 amtTcpRedirectSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTTCPRedirect]);
                 objAlternativeNames.Add(amtTcpRedirectSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTTLSRedirect))
             {
@@ -285,6 +303,7 @@ namespace MeshCentralSatellite
                 var amtTlsRedirectSpn = new CAlternativeName();
                 amtTlsRedirectSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTTLSRedirect]);
                 objAlternativeNames.Add(amtTlsRedirectSpn);
+                r++;
             }
             if (commonNames.ContainsKey(CommonNameTypes.AMTVNCKVM))
             {
@@ -292,7 +311,25 @@ namespace MeshCentralSatellite
                 var amtVncKvmSpn = new CAlternativeName();
                 amtVncKvmSpn.InitializeFromString(AlternativeNameType.XCN_CERT_ALT_NAME_USER_PRINCIPLE_NAME, commonNames[CommonNameTypes.AMTVNCKVM]);
                 objAlternativeNames.Add(amtVncKvmSpn);
+                r++;
             }
+
+            return r;
+        }
+
+
+        public const Int32 CrPropTemplates = 0x0000001D; // Configured Certificate Templates
+        public const Int32 ProptypeString = 4;
+
+        public static string[] GetCATemplates(string caName)
+        {
+            var request = new CCertRequest();
+            ArrayList r = new ArrayList();
+            string[] templates = null;
+            try { templates = ((String)request.GetCAProperty(caName, CrPropTemplates, 0, ProptypeString, 0)).Split('\n'); } catch (Exception) { }
+            if (templates == null) return null;
+            for (int i = 0; i < templates.Length; i += 2) { r.Add(templates[i]); }
+            return (string[])r.ToArray(typeof(string));
         }
     }
 }

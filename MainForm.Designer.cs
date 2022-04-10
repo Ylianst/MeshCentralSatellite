@@ -46,6 +46,8 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
             this.clearConsoleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.connectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,8 +55,6 @@
             this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.serviceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
@@ -78,7 +78,6 @@
             this.sshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.updateTimer = new System.Windows.Forms.Timer(this.components);
-            this.listCertificateAuthoritiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel5.SuspendLayout();
             this.mainPanel.SuspendLayout();
             this.mainTabControl.SuspendLayout();
@@ -209,6 +208,8 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.settingsToolStripMenuItem,
+            this.toolStripMenuItem5,
             this.clearConsoleToolStripMenuItem,
             this.toolStripMenuItem4,
             this.connectToolStripMenuItem,
@@ -217,6 +218,17 @@
             this.exitToolStripMenuItem1});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             resources.ApplyResources(this.fileToolStripMenuItem, "fileToolStripMenuItem");
+            // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            resources.ApplyResources(this.settingsToolStripMenuItem, "settingsToolStripMenuItem");
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            resources.ApplyResources(this.toolStripMenuItem5, "toolStripMenuItem5");
             // 
             // clearConsoleToolStripMenuItem
             // 
@@ -255,8 +267,6 @@
             // serviceToolStripMenuItem
             // 
             this.serviceToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.settingsToolStripMenuItem,
-            this.toolStripMenuItem2,
             this.startToolStripMenuItem,
             this.stopToolStripMenuItem,
             this.toolStripMenuItem1,
@@ -264,17 +274,6 @@
             this.uninstallToolStripMenuItem});
             this.serviceToolStripMenuItem.Name = "serviceToolStripMenuItem";
             resources.ApplyResources(this.serviceToolStripMenuItem, "serviceToolStripMenuItem");
-            // 
-            // settingsToolStripMenuItem
-            // 
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            resources.ApplyResources(this.settingsToolStripMenuItem, "settingsToolStripMenuItem");
-            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
-            // 
-            // toolStripMenuItem2
-            // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            resources.ApplyResources(this.toolStripMenuItem2, "toolStripMenuItem2");
             // 
             // startToolStripMenuItem
             // 
@@ -309,8 +308,7 @@
             // 
             this.testingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createTestComputerToolStripMenuItem,
-            this.removeTestComputerToolStripMenuItem,
-            this.listCertificateAuthoritiesToolStripMenuItem});
+            this.removeTestComputerToolStripMenuItem});
             this.testingToolStripMenuItem.Name = "testingToolStripMenuItem";
             resources.ApplyResources(this.testingToolStripMenuItem, "testingToolStripMenuItem");
             // 
@@ -418,12 +416,6 @@
             this.updateTimer.Interval = 2000;
             this.updateTimer.Tick += new System.EventHandler(this.updateTimer_Tick);
             // 
-            // listCertificateAuthoritiesToolStripMenuItem
-            // 
-            this.listCertificateAuthoritiesToolStripMenuItem.Name = "listCertificateAuthoritiesToolStripMenuItem";
-            resources.ApplyResources(this.listCertificateAuthoritiesToolStripMenuItem, "listCertificateAuthoritiesToolStripMenuItem");
-            this.listCertificateAuthoritiesToolStripMenuItem.Click += new System.EventHandler(this.listCertificateAuthoritiesToolStripMenuItem_Click);
-            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
@@ -486,8 +478,6 @@
         private System.Windows.Forms.ToolStripMenuItem installToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem uninstallToolStripMenuItem;
         private System.Windows.Forms.Timer updateTimer;
-        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.TabControl mainTabControl;
         private System.Windows.Forms.TabPage consoleTabPage;
         private System.Windows.Forms.TabPage eventsTabPage;
@@ -500,7 +490,8 @@
         private System.Windows.Forms.ImageList eventImageList;
         private System.Windows.Forms.ToolStripMenuItem clearConsoleToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
-        private System.Windows.Forms.ToolStripMenuItem listCertificateAuthoritiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
     }
 }
 

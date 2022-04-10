@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+using CERTENROLLLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace MeshCentralSatellite
@@ -28,6 +30,7 @@ namespace MeshCentralSatellite
         private string user = null;
         private string pass = null;
         private string loginkey = null;
+        public string devNameType = null;
         public bool debug = false;
         public bool ignoreCert = false;
         private bool autoReconnect = false;
@@ -35,8 +38,11 @@ namespace MeshCentralSatellite
 
         // Certificate Authority
         private string caName = null;
+        private string caTemplate = null;
         private X509Certificate2 caRootCert = null;
         private string caCommonName = null;
+        private string certCommonName = null;
+        private string certAltNames = null;
 
         public delegate void onStateChangedHandler(int state);
         public event onStateChangedHandler onStateChanged;
@@ -58,18 +64,6 @@ namespace MeshCentralSatellite
 
         private readonly string[] netAuthStrings = { "eap-tls", "eap-ttls/mschapv2", "peapv0/eap-mschapv2", "peapv1/eap-gtc", "eap-fast/mschapv2", "eap-fast/gtc", "eap-md5", "eap-psk", "eap-sim", "eap-aka", "eap-fast/tls" };
 
-        public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey, MeshCentralServer meshcentral)
-        {
-            this.host = host;
-            this.user = user;
-            this.pass = pass;
-            this.loginkey = loginkey;
-            this.meshcentral = meshcentral;
-            meshcentral.sendSatelliteSetFlags(3);
-
-            if (DomainControllerServices.isComputerJoinedToDomain()) { dc = new DomainControllerServices(); }
-        }
-
         public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey)
         {
             this.host = host;
@@ -81,14 +75,17 @@ namespace MeshCentralSatellite
         }
 
         // caName must be of format: <COMPUTERNAME>\\<CANAME>
-        public bool SetCertificateAuthority(string caName)
+        public bool SetCertificateAuthority(string caName, string caTemplate, string certCommonName, string certAltNames)
         {
-            if (caName == null)
+            if ((caName == null) || (caName == ""))
             {
                 // Clear CA
                 caRootCert = null;
                 this.caName = null;
+                this.caTemplate = null;
                 caCommonName = null;
+                certCommonName = null;
+                certAltNames = null;
                 return true;
             }
             else
@@ -107,8 +104,11 @@ namespace MeshCentralSatellite
                 {
                     // CA works
                     this.caName = caName;
+                    this.caTemplate = caTemplate;
                     caCommonName = CertificationAuthorityService.GetCommonNameFromSubject(caRootCert.Subject);
                     Log("Contacted certificate authority: " + caCommonName);
+                    this.certCommonName = certCommonName;
+                    this.certAltNames = certAltNames;
                     return true;
                 }
             }
@@ -117,7 +117,7 @@ namespace MeshCentralSatellite
         public void AddTestComputer()
         {
             if (dc == null) { Log("Unable to add computer, not part of a domain."); return; }
-            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer("TestComputer");
+            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer("TestComputer", "TestDescription");
             if (computer != null)
             {
                 if (computer.AlreadyPresent)
@@ -219,6 +219,25 @@ namespace MeshCentralSatellite
 
         private string NodeIdToComputerId(string nodeid) { return nodeid.Split('/')[2].Substring(0, 12); }
 
+        private string ComputerName(string devname, string nodeid) {
+            if (devNameType.ToLower() == "nodeid") { return NodeIdToComputerId(nodeid); }
+            return devname;
+        }
+
+        private string ComputerDesciption(string devname, string nodeid, string devVersion)
+        {
+            if (devVersion == null) {
+                if (devNameType.ToLower() == "nodeid") { return "Intel® AMT device - " + devname; }
+                return "Intel® AMT device - " + nodeid;
+            }
+            else
+            {
+                if (devNameType.ToLower() == "nodeid") { return "Intel® AMT v" + devVersion + " - " + devname; }
+                return "Intel® AMT v" + devVersion + " - " + nodeid;
+            }
+        }
+
+
         private void Meshcentral_onSatelliteMessage(Dictionary<string, object> message)
         {
             string subaction = null;
@@ -226,15 +245,15 @@ namespace MeshCentralSatellite
             if (subaction == null) return;
             switch (subaction)
             {
-                case "802.1x-Profile-Remove": { RequestFor8021xProfileRemoval(message); break; }
                 case "802.1x-ProFile-Request": { RequestFor8021xProfile(message); break; }
                 case "802.1x-KeyPair-Response": { ResponseFor8021xKeyPairGeneration(message); break; }
                 case "802.1x-CSR-Response": { ResponseFor8021xCSR(message); break; }
+                case "802.1x-Profile-Remove": { RequestFor8021xProfileRemoval(message); break; }
                 default: { Log("Unknown request: " + subaction); break; }
             }
         }
 
-        private void ResponseFor8021xCSR(Dictionary<string, object> message)
+        private void RequestFor8021xProfile(Dictionary<string, object> message)
         {
             int satelliteFlags = 0;
             string nodeid = null;
@@ -244,7 +263,9 @@ namespace MeshCentralSatellite
             string devname = null;
             string osname = null;
             int devIcon = 1;
-            string signedcsr = null;
+            string clientCert = null;
+            string clientCertId = null;
+            string devVersion = null;
 
             try
             {
@@ -256,42 +277,126 @@ namespace MeshCentralSatellite
                 if (message.ContainsKey("devname")) { devname = (string)message["devname"]; }
                 if (message.ContainsKey("osname")) { osname = (string)message["osname"]; }
                 if (message.ContainsKey("icon")) { devIcon = (int)message["icon"]; }
-                if (message.ContainsKey("signedcsr")) { signedcsr = (string)message["signedcsr"]; }
+                if (message.ContainsKey("cert")) { clientCert = (string)message["cert"]; }
+                if (message.ContainsKey("certid")) { clientCertId = (string)message["certid"]; }
+                if (message.ContainsKey("ver")) { devVersion = (string)message["ver"]; }
             }
             catch (Exception) { satelliteFlags = 0; }
 
             if (devname == null) { devname = NodeIdToComputerId(nodeid); }
 
-            if ((satelliteFlags != 2) || (nodeid == null) || (domain == null) || (reqid == null) || (authProtocol > 10) || (authProtocol < 0) || (signedcsr == null))
+            if ((satelliteFlags != 2) || (nodeid == null) || (domain == null) || (reqid == null) || (authProtocol > 10) || (authProtocol < 0))
             {
-                Log("MeshCentralSatelliteServer - Invalid response for 802.1x CSR.");
+                Log("MeshCentralSatelliteServer - Invalid request for 802.1x profile.");
                 return;
             }
+
+            if (devname != null) { Log("MeshCentralSatelliteServer - " + devname + " - 802.1x " + netAuthStrings[authProtocol] + " request."); }
 
             switch (authProtocol)
             {
                 case 0: // eap-tls
                     {
+                        if (caName == null)
+                        {
+                            LogEvent(devIcon, "ERROR: " + devname + " requested a EAP-TLS profile with no CA configured.");
+                            return; // We dont have a CA, EAP-TLS is not supported.
+                        }
+
                         // Check that this computer is allowed to have a 802.1x profile
                         // TODO
 
-                        // Sign the certificate request
-                        X509Certificate2 cert = null;
-                        cert = CertificationAuthorityService.GetClientCertFromCsr(signedcsr, caName);
-                        if (cert != null)
+                        // If Intel AMT already has a 802.1x client certificate, check if it's correct
+                        bool certOk = false;
+                        string certRovokeSerialNumber = null;
+                        if ((clientCert != null) && (clientCertId != null))
                         {
-                            // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(NodeIdToComputerId(nodeid));
+                            try
+                            {
+                                // Decode the certificate
+                                X509Certificate2 cert = new X509Certificate2(Convert.FromBase64String(clientCert));
+                                certRovokeSerialNumber = cert.GetSerialNumberString();
+                                long certStart = cert.NotBefore.Ticks;
+                                long certEnd = cert.NotAfter.Ticks;
+                                long certMidPoint = certStart + ((certEnd - certStart) / 2);
+                                long now = DateTime.Now.Ticks;
+                                if ((now > certStart) && (now < certMidPoint))
+                                {
+                                    // Certificate is within validity period, check issuer name
+                                    if (cert.Issuer == caRootCert.Subject)
+                                    {
+                                        // Correct issuer, check that it's correctly signed by the CA root.
+                                        certOk = true;
+                                    }
+                                }
+                            }
+                            catch (Exception) { }
+                        }
+
+                        if (certOk)
+                        {
+                            // Existing 802.1x client certificate is ok, just renew the 802.1x profile
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
                                 Dictionary<string, object> response = new Dictionary<string, object>();
                                 response["authProtocol"] = authProtocol;
-                                response["certificate"] = Convert.ToBase64String(cert.GetRawCertData(), Base64FormattingOptions.None);
-                                response["rootcert"] = Convert.ToBase64String(caRootCert.GetRawCertData(), Base64FormattingOptions.None);
                                 response["domain"] = dc.DomainName;
                                 response["username"] = computer.SamAccountName;
-                                //response["password"] = computer.Password;
+                                response["password"] = computer.Password;
+                                if (caRootCert != null) { response["rootcert"] = Convert.ToBase64String(caRootCert.GetRawCertData(), Base64FormattingOptions.None); }
+                                response["certid"] = clientCertId;
+                                message["subaction"] = "802.1x-Profile-Completed";
+                                message["response"] = response;
+                                meshcentral.sendCommand(message);
+                                Log("MeshCentralSatelliteServer - " + devname + " - Cert OK, Sent response.");
+                            }
+                            else
+                            {
+                                LogEvent(devIcon, "Failed to add computer: " + devname);
+                            }
+                        }
+                        else
+                        {
+                            // Revoke the old certificate, we will be getting a new one
+                            if (certRovokeSerialNumber != null)
+                            {
+                                CertificationAuthorityService.RevokeCertificateFromCa(caName, certRovokeSerialNumber, DomainControllerServices.CertRevokeReason.CrlReasonCessationOfOperation);
+                            }
+
+                            // Request that Intel AMT generate a key pair
+                            Dictionary<string, object> rmessage = new Dictionary<string, object>();
+                            rmessage["action"] = "satellite";
+                            rmessage["satelliteFlags"] = 2; // Indicate 802.1x operation
+                            rmessage["nodeid"] = nodeid;
+                            rmessage["domain"] = domain;
+                            rmessage["subaction"] = "802.1x-KeyPair-Request";
+                            rmessage["reqid"] = reqid;
+                            meshcentral.sendCommand(rmessage);
+                            Log("MeshCentralSatelliteServer - " + devname + " - Requesting key pair generation...");
+                        }
+                        break;
+                    }
+                case 2: // peapv0/eap-mschapv2
+                    {
+                        if (dc == null)
+                        {
+                            LogEvent(devIcon, "Failed to add computer: " + devname);
+                        }
+                        else
+                        {
+                            // Request the computer be created or reset in the domain
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                            if (computer != null)
+                            {
+                                if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
+                                Dictionary<string, object> response = new Dictionary<string, object>();
+                                response["authProtocol"] = authProtocol;
+                                response["domain"] = dc.DomainName;
+                                response["username"] = computer.SamAccountName;
+                                response["password"] = computer.Password;
+                                if (caRootCert != null) { response["rootcert"] = Convert.ToBase64String(caRootCert.GetRawCertData(), Base64FormattingOptions.None); }
                                 message["subaction"] = "802.1x-Profile-Completed";
                                 message["response"] = response;
                                 meshcentral.sendCommand(message);
@@ -302,10 +407,6 @@ namespace MeshCentralSatellite
                                 LogEvent(devIcon, "Failed to add computer: " + devname);
                             }
                         }
-                        else
-                        {
-                            LogEvent(devIcon, "Failed to sign the certificate: " + devname);
-                        }
                         break;
                     }
                 default:
@@ -315,6 +416,7 @@ namespace MeshCentralSatellite
                     }
             }
         }
+
 
         private void ResponseFor8021xKeyPairGeneration(Dictionary<string, object> message)
         {
@@ -328,6 +430,7 @@ namespace MeshCentralSatellite
             int devIcon = 1;
             string DERKey = null;
             string keyInstanceId = null;
+            string devVersion = null;
 
             try
             {
@@ -341,6 +444,7 @@ namespace MeshCentralSatellite
                 if (message.ContainsKey("icon")) { devIcon = (int)message["icon"]; }
                 if (message.ContainsKey("DERKey")) { DERKey = (string)message["DERKey"]; }
                 if (message.ContainsKey("keyInstanceId")) { keyInstanceId = (string)message["keyInstanceId"]; }
+                if (message.ContainsKey("ver")) { devVersion = (string)message["ver"]; }
             }
             catch (Exception) { satelliteFlags = 0; }
 
@@ -356,22 +460,35 @@ namespace MeshCentralSatellite
             {
                 case 0: // eap-tls
                     {
+                        if (caName == null) return; // We dont have a CA, EAP-TLS is not supported.
+
                         // Check that this computer is allowed to have a 802.1x profile
                         // TODO
 
                         // Generate a certificate for this device
-                        DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputerObject(NodeIdToComputerId(nodeid));
+                        DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
 
-                        Dictionary<CertificationAuthorityService.CommonNameTypes, string> extras = new Dictionary<CertificationAuthorityService.CommonNameTypes, string>();
-                        extras[CertificationAuthorityService.CommonNameTypes.Hostname] = computer.HostName; // "DESKTOP-3E4EKVH.mesh.meshcentral.com";
-                        extras[CertificationAuthorityService.CommonNameTypes.UserPrincipalName] = computer.UserPrincipalName;
-                        extras[CertificationAuthorityService.CommonNameTypes.DNSFQDN] = computer.DnsFqdn;
-                        extras[CertificationAuthorityService.CommonNameTypes.SAMAccountName] = computer.SamAccountName;
-                        extras[CertificationAuthorityService.CommonNameTypes.DistinguishedName] = computer.DistinguishedName;
+                        string[] xCertAltNames = null;
+                        if (certAltNames == null) { xCertAltNames = "DistinguishedName,DNSFQDN,Hostname,UserPrincipalName,SAMAccountName,UUID".ToLower().Split(','); } else { xCertAltNames = certAltNames.ToLower().Split(','); }
+                        Dictionary<CertificationAuthorityService.CommonNameTypes, string> altNames = new Dictionary<CertificationAuthorityService.CommonNameTypes, string>();
+                        if ((xCertAltNames.Contains("distinguishedname")) && ((certCommonName.ToLower() != "distinguishedname"))) { altNames[CertificationAuthorityService.CommonNameTypes.DistinguishedName] = computer.DistinguishedName; }
+                        if ((xCertAltNames.Contains("dnsfqdn")) && ((certCommonName.ToLower() != "dnsfqdn"))) { altNames[CertificationAuthorityService.CommonNameTypes.DNSFQDN] = computer.DnsFqdn; }
+                        if ((xCertAltNames.Contains("hostname")) && ((certCommonName.ToLower() != "hostname"))) { altNames[CertificationAuthorityService.CommonNameTypes.Hostname] = computer.HostName; }
+                        if ((xCertAltNames.Contains("userprincipalname")) && ((certCommonName.ToLower() != "userprincipalname"))) { altNames[CertificationAuthorityService.CommonNameTypes.UserPrincipalName] = computer.UserPrincipalName; }
+                        if ((xCertAltNames.Contains("samaccountname")) && ((certCommonName.ToLower() != "samaccountname"))) { altNames[CertificationAuthorityService.CommonNameTypes.SAMAccountName] = computer.SamAccountName; }
+                        if ((xCertAltNames.Contains("uuid")) && ((certCommonName.ToLower() != "uuid"))) { altNames[CertificationAuthorityService.CommonNameTypes.UUID] = computer.Uuid.ToString(); }
+
+                        // Look at the common name that will be used to create the certificate
+                        var objDistinguishedName = new CX500DistinguishedName();
+                        if (certCommonName.ToLower() == "dnsfqdn") { objDistinguishedName.Encode("CN=" + computer.DnsFqdn); }
+                        else if (certCommonName.ToLower() == "hostname") { objDistinguishedName.Encode("CN=" + computer.HostName); }
+                        else if (certCommonName.ToLower() == "userprincipalname") { objDistinguishedName.Encode("CN=" + computer.UserPrincipalName); }
+                        else if (certCommonName.ToLower() == "samaccountname") { objDistinguishedName.Encode("CN=" + computer.SamAccountName); }
+                        else if (certCommonName.ToLower() == "uuid") { objDistinguishedName.Encode("CN=" + computer.Uuid); }
+                        else { objDistinguishedName.Encode(computer.DistinguishedName, X500NameFlags.XCN_CERT_NAME_STR_COMMA_FLAG); } // "distinguishedname"
 
                         // You can use "Get-CATemplate" in PowerShell to get a list of supported CA templates.
-                        string templateName = "AMTEAPTLSTemplate";
-                        string csr = CertificationAuthorityService.GenerateNullCsr(computer.DistinguishedName, extras, templateName, CertificationAuthorityService.CommonNameTypes.Hostname, Convert.FromBase64String(DERKey));
+                        string csr = CertificationAuthorityService.GenerateNullCsr(objDistinguishedName, altNames, caTemplate, Convert.FromBase64String(DERKey));
                         if (csr == null)
                         {
                             Log("MeshCentralSatelliteServer - " + devname + " - Unable to generate NULL CSR.");
@@ -394,6 +511,92 @@ namespace MeshCentralSatellite
                             rmessage["response"] = response;
                             meshcentral.sendCommand(rmessage);
                             Log("MeshCentralSatelliteServer - " + devname + " - Requesting CSR signature...");
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        Log("MeshCentralSatelliteServer - " + devname + " - Unsupported 802.1x protocol: " + netAuthStrings[authProtocol]);
+                        break;
+                    }
+            }
+        }
+
+        private void ResponseFor8021xCSR(Dictionary<string, object> message)
+        {
+            int satelliteFlags = 0;
+            string nodeid = null;
+            string domain = null;
+            string reqid = null;
+            int authProtocol = 0;
+            string devname = null;
+            string osname = null;
+            int devIcon = 1;
+            string signedcsr = null;
+            string devVersion = null;
+
+            try
+            {
+                satelliteFlags = (int)message["satelliteFlags"];
+                nodeid = (string)message["nodeid"];
+                domain = (string)message["domain"];
+                reqid = (string)message["reqid"];
+                authProtocol = (int)message["authProtocol"];
+                if (message.ContainsKey("devname")) { devname = (string)message["devname"]; }
+                if (message.ContainsKey("osname")) { osname = (string)message["osname"]; }
+                if (message.ContainsKey("icon")) { devIcon = (int)message["icon"]; }
+                if (message.ContainsKey("signedcsr")) { signedcsr = (string)message["signedcsr"]; }
+                if (message.ContainsKey("ver")) { devVersion = (string)message["ver"]; }
+            }
+            catch (Exception) { satelliteFlags = 0; }
+
+            if (devname == null) { devname = NodeIdToComputerId(nodeid); }
+
+            if ((satelliteFlags != 2) || (nodeid == null) || (domain == null) || (reqid == null) || (authProtocol > 10) || (authProtocol < 0) || (signedcsr == null))
+            {
+                Log("MeshCentralSatelliteServer - Invalid response for 802.1x CSR.");
+                return;
+            }
+
+            switch (authProtocol)
+            {
+                case 0: // eap-tls
+                    {
+                        if (caName == null) return; // We dont have a CA, EAP-TLS is not supported.
+
+                        // Check that this computer is allowed to have a 802.1x profile
+                        // TODO
+
+                        // Sign the certificate request
+                        X509Certificate2 cert = null;
+                        cert = CertificationAuthorityService.GetClientCertFromCsr(signedcsr, caName);
+                        if (cert != null)
+                        {
+                            // Request the computer be created or reset in the domain
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                            if (computer != null)
+                            {
+                                if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
+                                Dictionary<string, object> response = new Dictionary<string, object>();
+                                response["authProtocol"] = authProtocol;
+                                response["certificate"] = Convert.ToBase64String(cert.GetRawCertData(), Base64FormattingOptions.None);
+                                if (caRootCert != null) { response["rootcert"] = Convert.ToBase64String(caRootCert.GetRawCertData(), Base64FormattingOptions.None); }
+                                response["domain"] = dc.DomainName;
+                                response["username"] = computer.SamAccountName;
+                                //response["password"] = computer.Password;
+                                message["subaction"] = "802.1x-Profile-Completed";
+                                message["response"] = response;
+                                meshcentral.sendCommand(message);
+                                Log("MeshCentralSatelliteServer - " + devname + " - Sent response.");
+                            }
+                            else
+                            {
+                                LogEvent(devIcon, "Failed to add computer: " + devname);
+                            }
+                        }
+                        else
+                        {
+                            LogEvent(devIcon, "Failed to sign the certificate: " + devname);
                         }
                         break;
                     }
@@ -440,99 +643,6 @@ namespace MeshCentralSatellite
                 LogEvent(devIcon, "Failed to remove computer: " + devname);
             }
         }
-
-        private void RequestFor8021xProfile(Dictionary<string, object> message)
-        {
-            int satelliteFlags = 0;
-            string nodeid = null;
-            string domain = null;
-            string reqid = null;
-            int authProtocol = 0;
-            string devname = null;
-            string osname = null;
-            int devIcon = 1;
-
-            try
-            {
-                satelliteFlags = (int)message["satelliteFlags"];
-                nodeid = (string)message["nodeid"];
-                domain = (string)message["domain"];
-                reqid = (string)message["reqid"];
-                authProtocol = (int)message["authProtocol"];
-                if (message.ContainsKey("devname")) { devname = (string)message["devname"]; }
-                if (message.ContainsKey("osname")) { osname = (string)message["osname"]; }
-                if (message.ContainsKey("icon")) { devIcon = (int)message["icon"]; }
-            }
-            catch (Exception) { satelliteFlags = 0; }
-
-            if (devname == null) { devname = NodeIdToComputerId(nodeid); }
-
-            if ((satelliteFlags != 2) || (nodeid == null) || (domain == null) || (reqid == null) || (authProtocol > 10) || (authProtocol < 0))
-            {
-                Log("MeshCentralSatelliteServer - Invalid request for 802.1x profile.");
-                return;
-            }
-
-            if (devname != null) { Log("MeshCentralSatelliteServer - " + devname + " - 802.1x " + netAuthStrings[authProtocol] + " request."); }
-
-            switch (authProtocol)
-            {
-                case 0: // eap-tls
-                    {
-                        // Check that this computer is allowed to have a 802.1x profile
-                        // TODO
-
-                        // Request that Intel AMT generate a key pair
-                        Dictionary<string, object> rmessage = new Dictionary<string, object>();
-                        rmessage["action"] = "satellite";
-                        rmessage["satelliteFlags"] = 2; // Indicate 802.1x operation
-                        rmessage["nodeid"] = nodeid;
-                        rmessage["domain"] = domain;
-                        rmessage["subaction"] = "802.1x-KeyPair-Request";
-                        rmessage["reqid"] = reqid;
-                        meshcentral.sendCommand(rmessage);
-                        Log("MeshCentralSatelliteServer - " + devname + " - Requesting key pair generation...");
-                        break;
-                    }
-                case 2: // peapv0/eap-mschapv2
-                    {
-                        if (dc == null)
-                        {
-                            LogEvent(devIcon, "Failed to add computer: " + devname);
-                        }
-                        else
-                        {
-                            // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(NodeIdToComputerId(nodeid));
-                            if (computer != null)
-                            {
-                                if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
-                                Dictionary<string, object> response = new Dictionary<string, object>();
-                                response["authProtocol"] = authProtocol;
-                                response["domain"] = dc.DomainName;
-                                response["username"] = computer.SamAccountName;
-                                response["password"] = computer.Password;
-                                response["rootcert"] = Convert.ToBase64String(caRootCert.GetRawCertData(), Base64FormattingOptions.None);
-                                message["subaction"] = "802.1x-Profile-Completed";
-                                message["response"] = response;
-                                meshcentral.sendCommand(message);
-                                Log("MeshCentralSatelliteServer - " + devname + " - Sent response.");
-                            }
-                            else
-                            {
-                                LogEvent(devIcon, "Failed to add computer: " + devname);
-                            }
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        Log("MeshCentralSatelliteServer - " + devname + " - Unsupported 802.1x protocol: " + netAuthStrings[authProtocol]);
-                        break;
-                    }
-            }
-        }
-
 
         public void Stop()
         {

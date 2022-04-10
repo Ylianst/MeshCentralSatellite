@@ -30,12 +30,10 @@ namespace MeshCentralSatellite
 {
     public partial class MainForm : Form
     {
-        public LoginForm loginForm = null;
         public int currentPanel = 0;
         public DateTime refreshTime = DateTime.Now;
         public MeshCentralSatelliteServer server = null;
         public MeshSatelliteService service = null;
-        public MeshCentralServer meshcentral = null;
         public X509Certificate2 lastBadConnectCert = null;
         public LocalPipeClient localPipeClient = null;
         public string title;
@@ -53,7 +51,11 @@ namespace MeshCentralSatellite
         public string argServerName = null;
         public string argUserName = null;
         public string argPassword = null;
-        public string argCA = null;
+        public string argDevNameType = null;
+        public string argCAName = null;
+        public string argCATemplate = null;
+        public string argCertCommonName = null;
+        public string argCertAltNames = null;
         public String executablePath = null;
 
         private bool IsAdministrator()
@@ -67,8 +69,8 @@ namespace MeshCentralSatellite
 
         private bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
         {
-            if (meshcentral == null) return false;
-            return meshcentral.RemoteCertificateValidation(certificate, chain, sslPolicyErrors);
+            if ((server == null) || (server.meshcentral == null)) return false;
+            return server.meshcentral.RemoteCertificateValidation(certificate, chain, sslPolicyErrors);
         }
 
         public MainForm(string[] args)
@@ -105,7 +107,11 @@ namespace MeshCentralSatellite
                         if (key == "host") { argServerName = val; argflags |= 1; }
                         if (key == "user") { argUserName = val; argflags |= 2; }
                         if (key == "pass") { argPassword = val; argflags |= 4; }
-                        if (key == "ca") { argCA = val; }
+                        if (key == "devnametype") { argDevNameType = val; }
+                        if (key == "caname") { argCAName = val; }
+                        if (key == "catemplate") { argCATemplate = val; }
+                        if (key == "certcommonname") { argCertCommonName = val; }
+                        if (key == "certaltnames") { argCertAltNames = val; }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { ignoreCert = true; }
@@ -123,10 +129,6 @@ namespace MeshCentralSatellite
                 if (arg.ToLower() == "-ignorecert") { ignoreCert = true; }
                 if (arg.ToLower() == "-service") { runAsService = true; }
                 if (arg.ToLower() == "-native") { webSocketClient.nativeWebSocketFirst = true; }
-                if ((arg.Length > 6) && (arg.Substring(0, 6).ToLower() == "-host:")) { argServerName = arg.Substring(6); argflags |= 1; }
-                if ((arg.Length > 6) && (arg.Substring(0, 6).ToLower() == "-user:")) { argUserName = arg.Substring(6); argflags |= 2; }
-                if ((arg.Length > 6) && (arg.Substring(0, 6).ToLower() == "-pass:")) { argPassword = arg.Substring(6); argflags |= 4; }
-                if ((arg.Length > 4) && (arg.Substring(0, 4).ToLower() == "-ca:")) { argCA = arg.Substring(4); }
                 if ((arg.Length > 8) && (arg.Substring(0, 8).ToLower() == "-update:")) { update = arg.Substring(8); }
                 if ((arg.Length > 8) && (arg.Substring(0, 8).ToLower() == "-delete:")) { delete = arg.Substring(8); }
             }
@@ -197,19 +199,18 @@ namespace MeshCentralSatellite
             }
 
             // Update the file menu
-            connectToolStripMenuItem.Enabled = ((!serviceInstalled) && (meshcentral == null));
-            disconnectToolStripMenuItem.Enabled = ((!serviceInstalled) && (meshcentral != null));
+            connectToolStripMenuItem.Enabled = ((!serviceInstalled) && (server == null));
+            disconnectToolStripMenuItem.Enabled = ((!serviceInstalled) && (server != null));
 
             // Update service menu
-            startToolStripMenuItem.Enabled = ((meshcentral == null) && (serviceInstalled) && (status == ServiceControllerStatus.Stopped));
-            stopToolStripMenuItem.Enabled = ((meshcentral == null) && (serviceInstalled) && (status == ServiceControllerStatus.Running));
-            installToolStripMenuItem.Enabled = (meshcentral == null) && !serviceInstalled;
-            uninstallToolStripMenuItem.Enabled = (meshcentral == null) && serviceInstalled;
+            startToolStripMenuItem.Enabled = ((server == null) && (serviceInstalled) && (status == ServiceControllerStatus.Stopped));
+            stopToolStripMenuItem.Enabled = ((server == null) && (serviceInstalled) && (status == ServiceControllerStatus.Running));
+            installToolStripMenuItem.Enabled = (server == null) && !serviceInstalled;
+            uninstallToolStripMenuItem.Enabled = (server == null) && serviceInstalled;
 
             // Update testing menu
-            createTestComputerToolStripMenuItem.Enabled = ((meshcentral != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
-            removeTestComputerToolStripMenuItem.Enabled = ((meshcentral != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
-            listCertificateAuthoritiesToolStripMenuItem.Enabled = ((meshcentral != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
+            createTestComputerToolStripMenuItem.Enabled = ((server != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
+            removeTestComputerToolStripMenuItem.Enabled = ((server != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
 
             if (serviceInstalled)
             {
@@ -249,9 +250,25 @@ namespace MeshCentralSatellite
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (loginForm != null) return;
-            loginForm = new LoginForm(this);
-            loginForm.Show(this);
+            if (server != null) return;
+            try
+            {
+                // Create & start server
+                server = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
+                server.devNameType = argDevNameType;
+                server.debug = debug;
+                server.onStateChanged += Server_onStateChanged;
+                server.onMessage += Server_onMessage;
+                server.onEvent += Server_onEvent;
+                server.ignoreCert = ignoreCert;
+                server.SetCertificateAuthority(argCAName, argCATemplate, argCertCommonName, argCertAltNames);
+                server.Start();
+            }
+            catch (Exception ex)
+            {
+                Log("Exception" + ex.ToString());
+                throw ex;
+            }
         }
 
         private delegate void LogHandler(string msg);
@@ -279,7 +296,6 @@ namespace MeshCentralSatellite
             server.onMessage -= Server_onMessage;
             server.Stop();
             server = null;
-            meshcentral = null;
             eventsListView.Items.Clear();
             this.Text = title;
             Log("Disconnected by user");
@@ -291,16 +307,6 @@ namespace MeshCentralSatellite
             Log(msg);
         }
 
-        public void ConnectedToServer()
-        {
-            server = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null, meshcentral);
-            server.onStateChanged += Server_onStateChanged;
-            server.onMessage += Server_onMessage;
-            server.onEvent += Server_onEvent;
-            server.SetCertificateAuthority(argCA);
-            server.Start();
-        }
-
         private void Server_onEvent(MeshCentralSatelliteServer.ServerEvent e)
         {
             AddEvent(e.icon, e.time, e.msg);
@@ -308,7 +314,7 @@ namespace MeshCentralSatellite
 
         private void Server_onStateChanged(int state)
         {
-            if (meshcentral == null) return;
+            if (server == null) return;
             if (this.InvokeRequired) { this.Invoke(new MeshCentralServer.onStateChangedHandler(Server_onStateChanged), state); return; }
 
             if (state == 0)
@@ -318,7 +324,6 @@ namespace MeshCentralSatellite
                 server.onMessage -= Server_onMessage;
                 server.Stop();
                 server = null;
-                meshcentral = null;
                 eventsListView.Items.Clear();
                 Log("Disconnected by server");
             }
@@ -372,6 +377,8 @@ namespace MeshCentralSatellite
             if (config != null)
             {
                 string[] configLines = config.Replace("\r\n", "\n").Split('\n');
+                string caname = null;
+                string catemplate = null;
                 foreach (string configLine in configLines)
                 {
                     int i = configLine.IndexOf('=');
@@ -382,25 +389,62 @@ namespace MeshCentralSatellite
                         if (key == "host") { f.host = val; }
                         if (key == "user") { f.user = val; }
                         if (key == "pass") { f.pass = val; }
-                        if (key == "ca") { f.ca = val; }
+                        if (key == "devnametype") { f.devNameType = val; }
+                        if (key == "caname") { caname = val; }
+                        if (key == "catemplate") { catemplate = val; }
+                        if (key == "certcommonname") { f.certCommonName = val; }
+                        if (key == "certaltnames") { f.certAltNames = val; }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { f.log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { f.debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { f.ignoreCert = true; }
                     }
                 }
+                if (caname != null) { f.setCertificateAuthority(caname, catemplate); }
             }
             if (f.ShowDialog(this) == DialogResult.OK)
             {
+                bool restartServer = false;
+                if (server != null)
+                {
+                    // If connected locally, disconnect now
+                    restartServer = true;
+                    disconnectToolStripMenuItem_Click(this, null);
+                }
+
+                // Update our own state
+                argServerName = f.host;
+                argUserName = f.user;
+                argPassword = f.pass;
+                argDevNameType = f.devNameType;
+                if (f.caname != "") { argCAName = f.caname; } else { argCAName = null; }
+                argCATemplate = f.catemplate;
+                argCertCommonName = f.certCommonName;
+                argCertAltNames = f.certAltNames;
+                log = f.log;
+                debug = f.debug;
+
+                // Update the config.txt file
                 config = "";
                 config += "host=" + f.host + "\r\n";
                 config += "user=" + f.user + "\r\n";
                 config += "pass=" + f.pass + "\r\n";
-                if (f.ca != "") { config += "ca=" + f.ca + "\r\n"; }
+                config += "devNameType=" + f.devNameType + "\r\n";
+                if (f.caname != "") {
+                    config += "caname=" + f.caname + "\r\n";
+                    if (f.catemplate != "") { config += "catemplate=" + f.catemplate + "\r\n"; }
+                    config += "certCommonName=" + f.certCommonName + "\r\n";
+                    config += "certAltNames=" + f.certAltNames + "\r\n";
+                }
                 if (f.log) { config += "log=1\r\n"; }
                 if (f.debug) { config += "debug=1\r\n"; }
                 if (f.ignoreCert) { config += "ignoreCert=1\r\n"; }
                 try { File.WriteAllText(configFile, config); } catch (Exception) {
                     MessageBox.Show(this, "Unable to write config.txt file.", "Settings Error");
+                }
+
+                if (restartServer)
+                {
+                    connectToolStripMenuItem_Click(this, null);
                 }
             }
         }
@@ -426,18 +470,6 @@ namespace MeshCentralSatellite
             else
             {
                 localPipeClient.Send("RemoveTestComputer");
-            }
-        }
-
-        private void listCertificateAuthoritiesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (server != null)
-            {
-                server.EventCertificateAuthorities();
-            }
-            else
-            {
-                localPipeClient.Send("ListCertificateAuthorities");
             }
         }
 

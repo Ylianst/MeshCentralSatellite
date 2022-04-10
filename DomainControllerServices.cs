@@ -134,7 +134,7 @@ namespace MeshCentralSatellite
             return domain;
         }
 
-        public ActiveDirectoryComputerObject CreateComputerObject(string computerIdentifier)
+        private ActiveDirectoryComputerObject CreateComputerObject(string computerIdentifier)
         {
             // My domain controller does not have organization units... but if I did, how would I get this information?
             string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
@@ -152,7 +152,7 @@ namespace MeshCentralSatellite
             return computer;
         }
 
-        public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, List<string> securityGroupDistinguishedNames = null)
+        public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, string description, List<string> securityGroupDistinguishedNames = null)
         {
             // My domain controller does not have organization units... but if I did, how would I get this information?
             string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
@@ -174,6 +174,7 @@ namespace MeshCentralSatellite
                         newComputer.Properties["UserAccountControl"].Value = WorkstationTrustAccountDoNotExpirePasswordFlag;
                         newComputer.Properties["dNSHostName"].Value = computer.DnsFqdn;
                         newComputer.Properties["userPrincipalName"].Value = computer.UserPrincipalName;
+                        if (description != null) { newComputer.Properties["Description"].Value = description; }
                         newComputer.CommitChanges();
                     }
                 }
@@ -560,8 +561,6 @@ namespace MeshCentralSatellite
                 $"{amtPortPrefix}{amtComputer.DnsFqdn}{LdapObjectRef.AmtServicePrincipalNames.VncKvm}");
             return certFields;
         }
-
-
 
     }
 }
