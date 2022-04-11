@@ -25,11 +25,36 @@ namespace MeshCentralSatellite
     {
         public string checkedCA = null;
 
+        private class ListViewItemObj
+        {
+            public string name;
+            public string tag;
+
+            public ListViewItemObj(string name, string tag)
+            {
+                this.name = name;
+                this.tag = tag;
+            }
+
+            public override string ToString() { return name; }
+        }
+
         public SettingsForm()
         {
             InitializeComponent();
             certCommonNameComboBox.SelectedIndex = 0;
             devNameComboBox.SelectedIndex = 0;
+
+            DomainControllerServices dc = new DomainControllerServices();
+            List<string> securityGroups = dc.getSecurityGroups();
+            if ((securityGroups != null) && (securityGroups.Count > 0))
+            {
+                foreach (string securityGroup in securityGroups)
+                {
+                    ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
+                    securityGroupsCheckedListBox.Items.Add(x);
+                }
+            }
         }
 
         public string host { get { return hostTextBox.Text; } set { hostTextBox.Text = value; updateInfo(); } }
@@ -74,6 +99,37 @@ namespace MeshCentralSatellite
                 else { certCommonNameComboBox.SelectedIndex = 0; }
             }
         }
+
+        public List<string> securityGroups
+        {
+            get
+            {
+                List<string> r = new List<string>();
+                foreach (ListViewItemObj x in securityGroupsCheckedListBox.CheckedItems) { r.Add(x.tag); }
+                return r;
+            }
+            set
+            {
+                securityGroupsCheckedListBox.ClearSelected();
+                List<string> toAdd = new List<string>();
+                foreach (string x in value) {
+                    bool found = false;
+                    List<ListViewItemObj> z = new List<ListViewItemObj>();
+                    foreach (ListViewItemObj y in securityGroupsCheckedListBox.Items) { z.Add(y); }
+                    foreach (ListViewItemObj y in z)
+                    {
+                        if (x == y.tag) { securityGroupsCheckedListBox.SetItemChecked(securityGroupsCheckedListBox.Items.IndexOf(y), true); found = true; }
+                    }
+                    if (!found) { toAdd.Add(x); }
+                }
+                foreach (string securityGroup in toAdd)
+                {
+                    ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
+                    securityGroupsCheckedListBox.Items.Add(x, true);
+                }
+            }
+        }
+
 
         public string certAltNames {
             get

@@ -25,6 +25,7 @@ using System.Security.Principal;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32;
 using System.ServiceProcess;
+using System.Collections.Generic;
 
 namespace MeshCentralSatellite
 {
@@ -56,6 +57,7 @@ namespace MeshCentralSatellite
         public string argCATemplate = null;
         public string argCertCommonName = null;
         public string argCertAltNames = null;
+        public List<string> argDevSecurityGroups = new List<string>();
         public String executablePath = null;
 
         private bool IsAdministrator()
@@ -112,6 +114,7 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { argCATemplate = val; }
                         if (key == "certcommonname") { argCertCommonName = val; }
                         if (key == "certaltnames") { argCertAltNames = val; }
+                        if (key == "devsecuritygroup") { argDevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { ignoreCert = true; }
@@ -211,6 +214,7 @@ namespace MeshCentralSatellite
             // Update testing menu
             createTestComputerToolStripMenuItem.Enabled = ((server != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
             removeTestComputerToolStripMenuItem.Enabled = ((server != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
+            testCertificateAuthorityToolStripMenuItem.Enabled = ((server != null) || ((serviceInstalled) && (status == ServiceControllerStatus.Running)));
 
             if (serviceInstalled)
             {
@@ -256,6 +260,7 @@ namespace MeshCentralSatellite
                 // Create & start server
                 server = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
                 server.devNameType = argDevNameType;
+                server.devSecurityGroups = argDevSecurityGroups;
                 server.debug = debug;
                 server.onStateChanged += Server_onStateChanged;
                 server.onMessage += Server_onMessage;
@@ -379,6 +384,7 @@ namespace MeshCentralSatellite
                 string[] configLines = config.Replace("\r\n", "\n").Split('\n');
                 string caname = null;
                 string catemplate = null;
+                List<string> xdevSecurityGroups = new List<string>();
                 foreach (string configLine in configLines)
                 {
                     int i = configLine.IndexOf('=');
@@ -394,12 +400,14 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { catemplate = val; }
                         if (key == "certcommonname") { f.certCommonName = val; }
                         if (key == "certaltnames") { f.certAltNames = val; }
+                        if (key == "devsecuritygroup") { xdevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { f.log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { f.debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { f.ignoreCert = true; }
                     }
                 }
                 if (caname != null) { f.setCertificateAuthority(caname, catemplate); }
+                f.securityGroups = xdevSecurityGroups;
             }
             if (f.ShowDialog(this) == DialogResult.OK)
             {
@@ -434,6 +442,11 @@ namespace MeshCentralSatellite
                     if (f.catemplate != "") { config += "catemplate=" + f.catemplate + "\r\n"; }
                     config += "certCommonName=" + f.certCommonName + "\r\n";
                     config += "certAltNames=" + f.certAltNames + "\r\n";
+                }
+                argDevSecurityGroups = f.securityGroups;
+                foreach (string securityGroup in argDevSecurityGroups)
+                {
+                    config += "devSecurityGroup=" + securityGroup + "\r\n";
                 }
                 if (f.log) { config += "log=1\r\n"; }
                 if (f.debug) { config += "debug=1\r\n"; }
@@ -478,5 +491,16 @@ namespace MeshCentralSatellite
             mainTextBox.Text = "";
         }
 
+        private void testCertificateAuthorityToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (server != null)
+            {
+                server.TestCertificateAuthority();
+            }
+            else
+            {
+                localPipeClient.Send("TestCertificateAuthority");
+            }
+        }
     }
 }

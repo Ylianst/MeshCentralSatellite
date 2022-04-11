@@ -31,6 +31,7 @@ namespace MeshCentralSatellite
         private string pass = null;
         private string loginkey = null;
         public string devNameType = null;
+        public List<string> devSecurityGroups = null;
         public bool debug = false;
         public bool ignoreCert = false;
         private bool autoReconnect = false;
@@ -116,35 +117,60 @@ namespace MeshCentralSatellite
 
         public void AddTestComputer()
         {
+            string testComputerName = "TestDevice";
+
             if (dc == null) { Log("Unable to add computer, not part of a domain."); return; }
-            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer("TestComputer", "TestDescription");
+            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(testComputerName, "MeshCentral Satellite Test Device", devSecurityGroups);
             if (computer != null)
             {
                 if (computer.AlreadyPresent)
                 {
-                    LogEvent(1, "Reset computer: TestComputer");
+                    LogEvent(1, "Reset computer: " + testComputerName);
                 }
                 else
                 {
-                    LogEvent(1, "Added computer: TestComputer");
+                    LogEvent(1, "Added computer: " + testComputerName);
                 }
             }
             else
             {
-                LogEvent(1, "Failed to add computer: TestComputer");
+                LogEvent(1, "Failed to add computer: " + testComputerName);
             }
         }
 
         public void RemoveTestComputer()
         {
+            string testComputerName = "TestDevice";
+
             if (dc == null) { Log("Unable to remove computer, not part of a domain."); return; }
-            if (dc.RemoveComputer("TestComputer"))
+            if (dc.RemoveComputer(testComputerName))
             {
-                LogEvent(1, "Removed computer: TestComputer");
+                LogEvent(1, "Removed computer: " + testComputerName);
             }
             else
             {
-                LogEvent(1, "Failed to removed computer: TestComputer");
+                LogEvent(1, "Failed to removed computer: " + testComputerName);
+            }
+        }
+
+        public void TestCertificateAuthority()
+        {
+            if ((caName == null) || (caName == ""))
+            {
+                Log("No certificate authority setup.");
+            }
+            else
+            {
+                X509Certificate2 cert = null;
+                try { cert = CertificationAuthorityService.GetRootCertificate(caName); } catch (Exception) { }
+                if (cert != null)
+                {
+                    Log("Succesfuly contacted CA: " + caName);
+                }
+                else
+                {
+                    Log("Failed to contact CA: " + caName);
+                }
             }
         }
 
@@ -336,7 +362,7 @@ namespace MeshCentralSatellite
                         if (certOk)
                         {
                             // Existing 802.1x client certificate is ok, just renew the 802.1x profile
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
@@ -387,7 +413,7 @@ namespace MeshCentralSatellite
                         else
                         {
                             // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
@@ -466,7 +492,7 @@ namespace MeshCentralSatellite
                         // TODO
 
                         // Generate a certificate for this device
-                        DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                        DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
 
                         string[] xCertAltNames = null;
                         if (certAltNames == null) { xCertAltNames = "DistinguishedName,DNSFQDN,Hostname,UserPrincipalName,SAMAccountName,UUID".ToLower().Split(','); } else { xCertAltNames = certAltNames.ToLower().Split(','); }
@@ -573,7 +599,7 @@ namespace MeshCentralSatellite
                         if (cert != null)
                         {
                             // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion));
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }

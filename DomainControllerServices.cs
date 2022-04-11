@@ -23,6 +23,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.DirectoryServices.ActiveDirectory;
 using System.Security.Cryptography.X509Certificates;
+using System.Globalization;
 
 namespace MeshCentralSatellite
 {
@@ -134,6 +135,13 @@ namespace MeshCentralSatellite
             return domain;
         }
 
+        public static string GetFirstCommonNameFromDistinguishedName(string distinguishedName)
+        {
+            string[] dnComponents = distinguishedName.Split(',');
+            foreach (var dnComponent in dnComponents) { if (dnComponent.TrimStart().StartsWith("CN=")) { return dnComponent.TrimStart().Substring(3); } }
+            return null;
+        }
+
         private ActiveDirectoryComputerObject CreateComputerObject(string computerIdentifier)
         {
             // My domain controller does not have organization units... but if I did, how would I get this information?
@@ -152,9 +160,30 @@ namespace MeshCentralSatellite
             return computer;
         }
 
-        public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, string description, List<string> securityGroupDistinguishedNames = null)
+        public List<string> getSecurityGroups()
         {
-            // My domain controller does not have organization units... but if I did, how would I get this information?
+            // TODO: Add org unit support?
+            // TODO: Right now, looking for security groups in the "Computers" section.
+            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+
+            List<string> groups = new List<string>();
+            using (var root = new DirectoryEntry(ldapUrl + orgUnitDistinguishedName))
+            {
+                using (var srch = new DirectorySearcher(root, "(&(objectCategory=group)(groupType:1.2.840.113556.1.4.803:=2147483648))"))
+                {
+                    SearchResultCollection results = srch.FindAll();
+                    if (results != null)
+                    {
+                        foreach (SearchResult result in results) { groups.Add((string)result.Properties["DistinguishedName"][0]);}
+                    }
+                }
+            }
+            return groups;
+        }
+
+        public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, string description, List<string> securityGroupDistinguishedNames)
+        {
+            // TODO: Add org unit support?
             string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
 
             // Create the computer object

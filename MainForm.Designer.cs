@@ -78,6 +78,7 @@
             this.sshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.updateTimer = new System.Windows.Forms.Timer(this.components);
+            this.testCertificateAuthorityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel5.SuspendLayout();
             this.mainPanel.SuspendLayout();
             this.mainTabControl.SuspendLayout();
@@ -308,7 +309,8 @@
             // 
             this.testingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createTestComputerToolStripMenuItem,
-            this.removeTestComputerToolStripMenuItem});
+            this.removeTestComputerToolStripMenuItem,
+            this.testCertificateAuthorityToolStripMenuItem});
             this.testingToolStripMenuItem.Name = "testingToolStripMenuItem";
             resources.ApplyResources(this.testingToolStripMenuItem, "testingToolStripMenuItem");
             // 
@@ -416,6 +418,12 @@
             this.updateTimer.Interval = 2000;
             this.updateTimer.Tick += new System.EventHandler(this.updateTimer_Tick);
             // 
+            // testCertificateAuthorityToolStripMenuItem
+            // 
+            this.testCertificateAuthorityToolStripMenuItem.Name = "testCertificateAuthorityToolStripMenuItem";
+            resources.ApplyResources(this.testCertificateAuthorityToolStripMenuItem, "testCertificateAuthorityToolStripMenuItem");
+            this.testCertificateAuthorityToolStripMenuItem.Click += new System.EventHandler(this.testCertificateAuthorityToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
@@ -492,6 +500,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem testCertificateAuthorityToolStripMenuItem;
     }
 }
 

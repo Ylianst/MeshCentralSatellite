@@ -88,6 +88,7 @@ namespace MeshCentralSatellite
             string argCATemplate = null;
             string argCertCommonName = null;
             string argCertAltNames = null;
+            List<string> argDevSecurityGroups = new List<string>();
 
             // Set TLS 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -122,6 +123,7 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { argCATemplate = val; }
                         if (key == "certcommonname") { argCertCommonName = val; }
                         if (key == "certaltnames") { argCertAltNames = val; }
+                        if (key == "devsecuritygroup") { argDevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
                         if ((key == "ignorecert") && ((val == "1") || (val.ToLower() == "true"))) { ignoreCert = true; }
@@ -142,6 +144,7 @@ namespace MeshCentralSatellite
                 // Create & start server
                 centralServer = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
                 centralServer.devNameType = argDevNameType;
+                centralServer.devSecurityGroups = argDevSecurityGroups;
                 centralServer.debug = debug;
                 centralServer.onStateChanged += CentralServer_onStateChanged;
                 centralServer.onMessage += CentralServer_onMessage;
@@ -187,6 +190,17 @@ namespace MeshCentralSatellite
                 try
                 {
                     centralServer.RemoveTestComputer();
+                }
+                catch (Exception ex)
+                {
+                    CentralServer_onMessage(ex.Message.Replace("\r\n", ""));
+                }
+            }
+            else if (msg == "TestCertificateAuthority")
+            {
+                try
+                {
+                    centralServer.TestCertificateAuthority();
                 }
                 catch (Exception ex)
                 {
