@@ -42,18 +42,23 @@ namespace MeshCentralSatellite
         public SettingsForm()
         {
             InitializeComponent();
-            certCommonNameComboBox.SelectedIndex = 0;
+            certCommonNameComboBox.SelectedIndex = 4;
             devNameComboBox.SelectedIndex = 0;
 
-            DomainControllerServices dc = new DomainControllerServices();
-            List<string> securityGroups = dc.getSecurityGroups();
-            if ((securityGroups != null) && (securityGroups.Count > 0))
+            if (DomainControllerServices.isComputerJoinedToDomain())
             {
-                foreach (string securityGroup in securityGroups)
+                DomainControllerServices dc = new DomainControllerServices();
+                List<string> securityGroups = dc.getSecurityGroups();
+                if ((securityGroups != null) && (securityGroups.Count > 0))
                 {
-                    ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
-                    securityGroupsCheckedListBox.Items.Add(x);
+                    foreach (string securityGroup in securityGroups)
+                    {
+                        ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
+                        securityGroupsCheckedListBox.Items.Add(x);
+                    }
                 }
+            } else {
+                securityGroupsCheckedListBox.Enabled = false;
             }
         }
 
