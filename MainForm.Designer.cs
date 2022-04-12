@@ -43,7 +43,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.mainStatusStrip = new System.Windows.Forms.StatusStrip();
             this.mainToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.versionToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -63,6 +63,7 @@
             this.testingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createTestComputerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeTestComputerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testCertificateAuthorityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.devicesContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addRelayMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -78,7 +79,7 @@
             this.sshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.updateTimer = new System.Windows.Forms.Timer(this.components);
-            this.testCertificateAuthorityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.panel5.SuspendLayout();
             this.mainPanel.SuspendLayout();
             this.mainTabControl.SuspendLayout();
@@ -180,8 +181,9 @@
             // 
             this.mainStatusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.mainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.versionToolStripStatusLabel,
             this.mainToolStripStatusLabel,
-            this.toolStripStatusLabel1});
+            this.toolStripStatusLabel2});
             resources.ApplyResources(this.mainStatusStrip, "mainStatusStrip");
             this.mainStatusStrip.Name = "mainStatusStrip";
             // 
@@ -189,12 +191,13 @@
             // 
             this.mainToolStripStatusLabel.Name = "mainToolStripStatusLabel";
             resources.ApplyResources(this.mainToolStripStatusLabel, "mainToolStripStatusLabel");
-            this.mainToolStripStatusLabel.Spring = true;
             // 
-            // toolStripStatusLabel1
+            // versionToolStripStatusLabel
             // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            resources.ApplyResources(this.toolStripStatusLabel1, "toolStripStatusLabel1");
+            this.versionToolStripStatusLabel.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.versionToolStripStatusLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.versionToolStripStatusLabel.Name = "versionToolStripStatusLabel";
+            resources.ApplyResources(this.versionToolStripStatusLabel, "versionToolStripStatusLabel");
             // 
             // mainMenuStrip
             // 
@@ -326,6 +329,12 @@
             resources.ApplyResources(this.removeTestComputerToolStripMenuItem, "removeTestComputerToolStripMenuItem");
             this.removeTestComputerToolStripMenuItem.Click += new System.EventHandler(this.removeTestComputerToolStripMenuItem_Click);
             // 
+            // testCertificateAuthorityToolStripMenuItem
+            // 
+            this.testCertificateAuthorityToolStripMenuItem.Name = "testCertificateAuthorityToolStripMenuItem";
+            resources.ApplyResources(this.testCertificateAuthorityToolStripMenuItem, "testCertificateAuthorityToolStripMenuItem");
+            this.testCertificateAuthorityToolStripMenuItem.Click += new System.EventHandler(this.testCertificateAuthorityToolStripMenuItem_Click);
+            // 
             // devicesContextMenuStrip
             // 
             this.devicesContextMenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
@@ -418,11 +427,10 @@
             this.updateTimer.Interval = 2000;
             this.updateTimer.Tick += new System.EventHandler(this.updateTimer_Tick);
             // 
-            // testCertificateAuthorityToolStripMenuItem
+            // toolStripStatusLabel2
             // 
-            this.testCertificateAuthorityToolStripMenuItem.Name = "testCertificateAuthorityToolStripMenuItem";
-            resources.ApplyResources(this.testCertificateAuthorityToolStripMenuItem, "testCertificateAuthorityToolStripMenuItem");
-            this.testCertificateAuthorityToolStripMenuItem.Click += new System.EventHandler(this.testCertificateAuthorityToolStripMenuItem_Click);
+            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            resources.ApplyResources(this.toolStripStatusLabel2, "toolStripStatusLabel2");
             // 
             // MainForm
             // 
@@ -478,7 +486,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
         private System.Windows.Forms.StatusStrip mainStatusStrip;
         private System.Windows.Forms.ToolStripStatusLabel mainToolStripStatusLabel;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripStatusLabel versionToolStripStatusLabel;
         private System.Windows.Forms.ToolStripMenuItem serviceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
@@ -501,6 +509,7 @@
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem testCertificateAuthorityToolStripMenuItem;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
     }
 }
 

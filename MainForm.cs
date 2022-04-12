@@ -31,7 +31,6 @@ namespace MeshCentralSatellite
 {
     public partial class MainForm : Form
     {
-        public bool joinedToDomain = false;
         public int currentPanel = 0;
         public DateTime refreshTime = DateTime.Now;
         public MeshCentralSatelliteServer server = null;
@@ -78,8 +77,6 @@ namespace MeshCentralSatellite
 
         public MainForm(string[] args)
         {
-            joinedToDomain = DomainControllerServices.isComputerJoinedToDomain();
-
             // Set TLS 1.2
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(RemoteCertificateValidationCallback);
@@ -171,6 +168,9 @@ namespace MeshCentralSatellite
             localPipeClient = new LocalPipeClient("MeshCentralSatelliteDebugPipe");
             localPipeClient.onMessage += LocalPipeClient_onMessage;
             localPipeClient.Start();
+
+            // Show version
+            versionToolStripStatusLabel.Text = "v" + Application.ProductVersion;
         }
 
         private void LocalPipeClient_onMessage(string msg)
