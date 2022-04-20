@@ -26,6 +26,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32;
 using System.ServiceProcess;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace MeshCentralSatellite
 {
@@ -242,11 +243,23 @@ namespace MeshCentralSatellite
         private void MainForm_Load(object sender, EventArgs e)
         {
             if (service != null) return;
-            Log("Started up.");
+            Log("Started up using " + RuntimeInformation.FrameworkDescription);
+            if (GetDotNetVersion() < 528040) { Log("WARNING: This application requires .NET framework 4.8"); }
+
             updateInfo();
             if ((connectToolStripMenuItem.Enabled) && (argServerName != null) && (argUserName != null) && (argPassword != null))
             {
                 connectToolStripMenuItem_Click(this, null);
+            }
+        }
+
+        private static int GetDotNetVersion()
+        {
+            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"))
+            {
+                var value = key?.GetValue("Release");
+                if (value == null) return 0;
+                return Convert.ToInt32(value); // 528040 is .NET 4.8
             }
         }
 
