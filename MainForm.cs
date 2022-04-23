@@ -244,7 +244,11 @@ namespace MeshCentralSatellite
         {
             if (service != null) return;
             Log("Started up using " + RuntimeInformation.FrameworkDescription);
-            if (GetDotNetVersion() < 528040) { Log("WARNING: This application requires .NET framework 4.8"); }
+            if (GetDotNetVersion() < 528040) {
+                MessageBox.Show(this, "This application requires .NET framework 4.8 or higher", this.title, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                Log("WARNING: This application requires .NET framework 4.8 or higher");
+                return;
+            }
 
             updateInfo();
             if ((connectToolStripMenuItem.Enabled) && (argServerName != null) && (argUserName != null) && (argPassword != null))
