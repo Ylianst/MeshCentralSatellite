@@ -1,5 +1,4 @@
-MeshCentral Satellite
-=====================
+# MeshCentral Satellite
 
 For more information, [visit MeshCentral.com](https://www.meshcentral.com).
 
@@ -110,6 +109,7 @@ Another example is this:
 In this example, the Intel AMT wired interface is configured with 802.1x along with a single WIFI profile. This time, instead of EAP-TLS being used for authentication, PEAPv0/EAP-MSCHAPv2 will be used. MeshCentral Satellite will be queried, but this time, a 802.1x account will be created in the domain with a username and random password. The password will be sent back to MeshCentral and set into Intel AMT.
 
 ## MeshCentral Satellite Setup
+
 You need to run MeshCentral Satellite on a computer that is joined to your domain and run it with sufficient rights that it can create LDAP computer objects and have access to the domain Certificate Authority so it can request that certificates be signed.
 
 You will probably want to run MeshCentral Satellite as a normal Windows application at first to make sure everything works before running it as a background Windows service. You can start by going in the "Settings" option in the menus and setting up the MeshCentral server's host name and login username and password. You also need to setup that certificate authority to use and certificate template. If a certificate authority is not setup, only PEAPv0/EAP-MSCHAPv2 will be supported.
@@ -118,12 +118,14 @@ You can also indicate what domain security groups a computer must be joined to w
 
 Once done, you can login to MeshCentral and the MeshCentral Satellite is ready to receive requests. You can use the "Testing" menu to create and remove a test computer from the domain. This is useful to make sure everything is working well before getting requests from MeshCentral.
 
-
 ## Video Tutorials
 You can watch many tutorial videos on the [MeshCentral YouTube Channel](https://www.youtube.com/channel/UCJWz607A8EVlkilzcrb-GKg/videos). There is one video on how to setup Intel AMT with 802.1x without MeshCentral Satellite, this is a good way to get started.
 
 Basic Intel AMT 802.1x with JumpCloud.  
 [![MeshCentral - Basic Intel AMT 802.1x with JumpCloud](https://img.youtube.com/vi/tKI9UJ1O15M/mqdefault.jpg)](https://www.youtube.com/watch?v=tKI9UJ1O15M)
+
+MeshCentral Satellite & Advanced Intel AMT 802.1x.  
+[![MeshCentral - Satellite & Advanced Intel AMT 802.1x](https://img.youtube.com/vi/1otWwjtFBIA/mqdefault.jpg)](https://www.youtube.com/watch?v=1otWwjtFBIA)
 
 ## Feedback
 If you encounter a problem or have a suggestion to improve the product, you may file an [issue report](https://github.com/Ylianst/MeshCentral/issues/)
