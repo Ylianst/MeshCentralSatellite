@@ -119,7 +119,7 @@ You can also indicate what domain security groups a computer must be joined to w
 Once done, you can login to MeshCentral and the MeshCentral Satellite is ready to receive requests. You can use the "Testing" menu to create and remove a test computer from the domain. This is useful to make sure everything is working well before getting requests from MeshCentral.
 
 ## Video Tutorials
-You can watch many tutorial videos on the [MeshCentral YouTube Channel](https://www.youtube.com/channel/UCJWz607A8EVlkilzcrb-GKg/videos). There is one video on how to setup Intel AMT with 802.1x without MeshCentral Satellite, this is a good way to get started.
+You can watch many tutorial videos on the [MeshCentral YouTube Channel](https://www.youtube.com/channel/UCJWz607A8EVlkilzcrb-GKg/videos). There is one video on how to setup Intel AMT with 802.1x without MeshCentral Satellite, this is a good way to get started. After that, you can take a look at the full demonstration of MeshCentral Satellite.
 
 Basic Intel AMT 802.1x with JumpCloud.  
 [![MeshCentral - Basic Intel AMT 802.1x with JumpCloud](https://img.youtube.com/vi/tKI9UJ1O15M/mqdefault.jpg)](https://www.youtube.com/watch?v=tKI9UJ1O15M)
