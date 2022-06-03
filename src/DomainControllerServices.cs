@@ -23,7 +23,6 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.DirectoryServices.ActiveDirectory;
 using System.Security.Cryptography.X509Certificates;
-using System.Globalization;
 
 namespace MeshCentralSatellite
 {
@@ -34,7 +33,9 @@ namespace MeshCentralSatellite
         private static Regex amtPasswordRgx = new Regex(@"^(?=.{20}$)(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[+\/]).*$");
         private string rootDistinguishedName;
         private string domain;
+        private string domainorg;
         private string ldapUrl = "LDAP://RootDSE/";
+        private string orgUnit = "CN=Computers";
 
         // This is from https://docs.microsoft.com/en-us/windows/win32/api/certadm/nf-certadm-icertadmin-revokecertificate.
         public enum CertRevokeReason
@@ -110,11 +111,21 @@ namespace MeshCentralSatellite
             return (d != null);
         }
 
-        public DomainControllerServices()
+        public static string[] reverseStringArray(string[] a)
         {
+            if (a == null) return null;
+            string[] b = new string[a.Length];
+            for (var i = 0; i < a.Length; i++) { b[i] = a[a.Length - 1 - i]; }
+            return b;
+        }
+
+        public DomainControllerServices(string orgUnit)
+        {
+            if (orgUnit != null) { this.orgUnit = orgUnit; } // Set the orgUnit, the default is "CN=Computers"
             DirectoryEntry RootDirEntry = new DirectoryEntry("LDAP://RootDSE");
             rootDistinguishedName = RootDirEntry.Properties["defaultNamingContext"].Value.ToString();
             domain = GetDomainFromDistinguishedName(rootDistinguishedName);
+            domainorg = GetDomainAndOrgFromDistinguishedName(rootDistinguishedName);
             DirectoryContext domainContext = new DirectoryContext(DirectoryContextType.Domain, domain);
             DomainController controller = Domain.GetDomain(domainContext).FindDomainController();
             ldapUrl = "LDAP://" + controller.Name + "/";
@@ -135,6 +146,22 @@ namespace MeshCentralSatellite
             return domain;
         }
 
+        private static string GetDomainAndOrgFromDistinguishedName(string distinguishedName)
+        {
+            var domainSb = new StringBuilder("");
+            if (string.IsNullOrEmpty(distinguishedName)) return string.Empty;
+            var dnComponents = distinguishedName.ToLower().Split(',');
+            if (!dnComponents.Any()) return string.Empty;
+            foreach (var dnComponent in dnComponents)
+            {
+                if (dnComponent.TrimStart().StartsWith("dc")) { domainSb.Append(dnComponent.Split('=')[1].Trim() + "."); }
+                if (dnComponent.TrimStart().StartsWith("ou")) { domainSb.Append(dnComponent.Split('=')[1].Trim() + "."); }
+            }
+            var domain = domainSb.ToString();
+            if (!string.IsNullOrEmpty(domain)) { domain = domain.Remove(domain.Length - 1); } // Remove last dot
+            return domain;
+        }
+
         public static string GetFirstCommonNameFromDistinguishedName(string distinguishedName)
         {
             string[] dnComponents = distinguishedName.Split(',');
@@ -144,15 +171,14 @@ namespace MeshCentralSatellite
 
         private ActiveDirectoryComputerObject CreateComputerObject(string computerIdentifier)
         {
-            // My domain controller does not have organization units... but if I did, how would I get this information?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer object
             ActiveDirectoryComputerObject computer = new ActiveDirectoryComputerObject
             {
                 HostName = $"iME-{computerIdentifier}",
-                UserPrincipalName = $"iME-{computerIdentifier}@{domain}",
-                DnsFqdn = $"iME-{computerIdentifier}.{domain}",
+                UserPrincipalName = $"iME-{computerIdentifier}@{domainorg}",
+                DnsFqdn = $"iME-{computerIdentifier}.{domainorg}",
                 SamAccountName = $"iME${computerIdentifier}$",
                 DistinguishedName = $"CN=iME-{computerIdentifier},{orgUnitDistinguishedName}",
                 AlreadyPresent = false
@@ -160,11 +186,32 @@ namespace MeshCentralSatellite
             return computer;
         }
 
+        // Return a list of possible locations where we can place Intel AMT computers
+        public static List<string> getDomainComputerLocations()
+        {
+            List<string> containers = new List<string>();
+            DirectorySearcher searcher = new DirectorySearcher("LDAP://RootDSE/");
+            searcher.Filter = "(|(objectCategory=organizationalUnit)(objectCategory=container))";
+            searcher.SearchScope = SearchScope.Subtree;  // search entire subtree from here on down
+            foreach (SearchResult result in searcher.FindAll())
+            {
+                var path = result.Path;
+                int i = result.Path.IndexOf("://");
+                if (i >= 0) { path = path.Substring(i + 3); }
+                string[] splitPath = path.Split(',');
+                string pathStr = "";
+                foreach (var dnComponent in splitPath) { if (dnComponent.StartsWith("CN") || dnComponent.StartsWith("OU")) { pathStr = dnComponent + "," + pathStr; } }
+                if (pathStr.Length > 1) { containers.Add(pathStr.Substring(0, pathStr.Length - 1)); }
+
+            }
+            return containers;
+        }
+
         public List<string> getSecurityGroups()
         {
             // TODO: Add org unit support?
-            // TODO: Right now, looking for security groups in the "Computers" section.
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            // TODO: Right now, looking for security groups in the orgUnit section.
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             List<string> groups = new List<string>();
             using (var root = new DirectoryEntry(ldapUrl + orgUnitDistinguishedName))
@@ -184,11 +231,24 @@ namespace MeshCentralSatellite
         public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, string description, List<string> securityGroupDistinguishedNames)
         {
             // TODO: Add org unit support?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer object
             ActiveDirectoryComputerObject computer = CreateComputerObject(computerIdentifier);
             computer.Password = GeneratePassword(); // Randomize a new password
+
+            // Look for a computer with exactly this name
+            DirectorySearcher searcher = new DirectorySearcher("LDAP://RootDSE/");
+            searcher.Filter = "(&(objectCategory=computer)(userPrincipalName=" + computer.UserPrincipalName + "))";
+            searcher.SearchScope = SearchScope.Subtree; // Search entire subtree from here on down
+            foreach (SearchResult result in searcher.FindAll())
+            {
+                if (("LDAP://" + computer.DistinguishedName) != result.Path)
+                {
+                    // This is a computer with the same name but at a different location, remove it.
+                    using (var entry = new DirectoryEntry(result.Path)) { entry.DeleteTree(); }
+                }
+            }
 
             // Add the computer to the active directory
             if (!DirectoryEntry.Exists(ldapUrl + computer.DistinguishedName))
@@ -249,7 +309,7 @@ namespace MeshCentralSatellite
         public bool RemoveComputer(string computerIdentifier)
         {
             // My domain controller does not have organization units... but if I did, how would I get this information?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer distinguished name
             string DistinguishedName = $"CN=iME-{computerIdentifier},{orgUnitDistinguishedName}";

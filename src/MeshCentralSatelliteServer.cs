@@ -31,6 +31,7 @@ namespace MeshCentralSatellite
         private string pass = null;
         private string loginkey = null;
         public string devNameType = null;
+        public string devLocation = null;
         public List<string> devSecurityGroups = null;
         public bool debug = false;
         public bool ignoreCert = false;
@@ -65,14 +66,16 @@ namespace MeshCentralSatellite
 
         private readonly string[] netAuthStrings = { "eap-tls", "eap-ttls/mschapv2", "peapv0/eap-mschapv2", "peapv1/eap-gtc", "eap-fast/mschapv2", "eap-fast/gtc", "eap-md5", "eap-psk", "eap-sim", "eap-aka", "eap-fast/tls" };
 
-        public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey)
+        public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey, string devLocation)
         {
             this.host = host;
             this.user = user;
             this.pass = pass;
             this.loginkey = loginkey;
 
-            if (DomainControllerServices.isComputerJoinedToDomain()) { dc = new DomainControllerServices(); }
+            string devLocationReversed = null;
+            if (devLocation != null) { devLocationReversed = String.Join(",", DomainControllerServices.reverseStringArray(devLocation.Split(','))); }
+            if (DomainControllerServices.isComputerJoinedToDomain()) { dc = new DomainControllerServices(devLocationReversed); }
         }
 
         // caName must be of format: <COMPUTERNAME>\\<CANAME>
@@ -362,7 +365,8 @@ namespace MeshCentralSatellite
                         if (certOk)
                         {
                             // Existing 802.1x client certificate is ok, just renew the 802.1x profile
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = null;
+                            try { computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups); } catch (Exception ex) { Log("MeshCentralSatelliteServer: " + ex.ToString()); }
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
@@ -413,7 +417,8 @@ namespace MeshCentralSatellite
                         else
                         {
                             // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = null;
+                            try { computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups); } catch (Exception ex) { Log("MeshCentralSatelliteServer: " + ex.ToString()); }
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }
@@ -492,7 +497,8 @@ namespace MeshCentralSatellite
                         // TODO
 
                         // Generate a certificate for this device
-                        DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
+                        DomainControllerServices.ActiveDirectoryComputerObject computer = null;
+                        try { computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups); } catch (Exception ex) { Log("MeshCentralSatelliteServer: " + ex.ToString()); }
 
                         string[] xCertAltNames = null;
                         if (certAltNames == null) { xCertAltNames = "DistinguishedName,DNSFQDN,Hostname,UserPrincipalName,SAMAccountName,UUID".ToLower().Split(','); } else { xCertAltNames = certAltNames.ToLower().Split(','); }
@@ -599,7 +605,8 @@ namespace MeshCentralSatellite
                         if (cert != null)
                         {
                             // Request the computer be created or reset in the domain
-                            DomainControllerServices.ActiveDirectoryComputerObject computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups);
+                            DomainControllerServices.ActiveDirectoryComputerObject computer = null;
+                            try { computer = dc.CreateComputer(ComputerName(devname, nodeid), ComputerDesciption(devname, nodeid, devVersion), devSecurityGroups); } catch (Exception ex) { Log("MeshCentralSatelliteServer: " + ex.ToString()); }
                             if (computer != null)
                             {
                                 if (computer.AlreadyPresent) { LogEvent(devIcon, "Reset computer: " + devname); } else { LogEvent(devIcon, "Added computer: " + devname); }

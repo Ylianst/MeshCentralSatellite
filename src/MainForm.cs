@@ -58,6 +58,7 @@ namespace MeshCentralSatellite
         public string argCATemplate = null;
         public string argCertCommonName = null;
         public string argCertAltNames = null;
+        public string argDevLocation = null;
         public List<string> argDevSecurityGroups = new List<string>();
         public String executablePath = null;
 
@@ -115,6 +116,7 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { argCATemplate = val; }
                         if (key == "certcommonname") { argCertCommonName = val; }
                         if (key == "certaltnames") { argCertAltNames = val; }
+                        if (key == "devlocation") { argDevLocation = val; }
                         if (key == "devsecuritygroup") { argDevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
@@ -278,7 +280,7 @@ namespace MeshCentralSatellite
             try
             {
                 // Create & start server
-                server = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
+                server = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null, argDevLocation);
                 server.devNameType = argDevNameType;
                 server.devSecurityGroups = argDevSecurityGroups;
                 server.debug = debug;
@@ -420,6 +422,7 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { catemplate = val; }
                         if (key == "certcommonname") { f.certCommonName = val; }
                         if (key == "certaltnames") { f.certAltNames = val; }
+                        if (key == "devlocation") { f.devLocation = val; }
                         if (key == "devsecuritygroup") { xdevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { f.log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { f.debug = true; }
@@ -463,6 +466,8 @@ namespace MeshCentralSatellite
                     config += "certCommonName=" + f.certCommonName + "\r\n";
                     config += "certAltNames=" + f.certAltNames + "\r\n";
                 }
+                config += "devLocation=" + f.devLocation + "\r\n";
+                argDevLocation = f.devLocation;
                 argDevSecurityGroups = f.securityGroups;
                 foreach (string securityGroup in argDevSecurityGroups)
                 {
