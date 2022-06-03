@@ -35,6 +35,7 @@ namespace MeshCentralSatellite
         private string rootDistinguishedName;
         private string domain;
         private string ldapUrl = "LDAP://RootDSE/";
+        private string orgUnit = "CN=Computers";
 
         // This is from https://docs.microsoft.com/en-us/windows/win32/api/certadm/nf-certadm-icertadmin-revokecertificate.
         public enum CertRevokeReason
@@ -110,8 +111,17 @@ namespace MeshCentralSatellite
             return (d != null);
         }
 
-        public DomainControllerServices()
+        public static string[] reverseStringArray(string[] a)
         {
+            if (a == null) return null;
+            string[] b = new string[a.Length];
+            for (var i = 0; i < a.Length; i++) { b[i] = a[a.Length - 1 - i]; }
+            return b;
+        }
+
+        public DomainControllerServices(string orgUnit)
+        {
+            if (orgUnit != null) { this.orgUnit = orgUnit; } // Set the orgUnit, the default is "CN=Computers"
             DirectoryEntry RootDirEntry = new DirectoryEntry("LDAP://RootDSE");
             rootDistinguishedName = RootDirEntry.Properties["defaultNamingContext"].Value.ToString();
             domain = GetDomainFromDistinguishedName(rootDistinguishedName);
@@ -144,8 +154,7 @@ namespace MeshCentralSatellite
 
         private ActiveDirectoryComputerObject CreateComputerObject(string computerIdentifier)
         {
-            // My domain controller does not have organization units... but if I did, how would I get this information?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer object
             ActiveDirectoryComputerObject computer = new ActiveDirectoryComputerObject
@@ -160,11 +169,32 @@ namespace MeshCentralSatellite
             return computer;
         }
 
+        // Return a list of possible locations where we can place Intel AMT computers
+        public static List<string> getDomainComputerLocations()
+        {
+            List<string> containers = new List<string>();
+            DirectorySearcher searcher = new DirectorySearcher("LDAP://RootDSE/");
+            searcher.Filter = "(|(objectCategory=organizationalUnit)(objectCategory=container))";
+            searcher.SearchScope = SearchScope.Subtree;  // search entire subtree from here on down
+            foreach (SearchResult result in searcher.FindAll())
+            {
+                var path = result.Path;
+                int i = result.Path.IndexOf("://");
+                if (i >= 0) { path = path.Substring(i + 3); }
+                string[] splitPath = path.Split(',');
+                string pathStr = "";
+                foreach (var dnComponent in splitPath) { if (dnComponent.StartsWith("CN") || dnComponent.StartsWith("OU")) { pathStr = dnComponent + "," + pathStr; } }
+                if (pathStr.Length > 1) { containers.Add(pathStr.Substring(0, pathStr.Length - 1)); }
+
+            }
+            return containers;
+        }
+
         public List<string> getSecurityGroups()
         {
             // TODO: Add org unit support?
-            // TODO: Right now, looking for security groups in the "Computers" section.
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            // TODO: Right now, looking for security groups in the orgUnit section.
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             List<string> groups = new List<string>();
             using (var root = new DirectoryEntry(ldapUrl + orgUnitDistinguishedName))
@@ -184,7 +214,7 @@ namespace MeshCentralSatellite
         public ActiveDirectoryComputerObject CreateComputer(string computerIdentifier, string description, List<string> securityGroupDistinguishedNames)
         {
             // TODO: Add org unit support?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer object
             ActiveDirectoryComputerObject computer = CreateComputerObject(computerIdentifier);
@@ -249,7 +279,7 @@ namespace MeshCentralSatellite
         public bool RemoveComputer(string computerIdentifier)
         {
             // My domain controller does not have organization units... but if I did, how would I get this information?
-            string orgUnitDistinguishedName = "CN=Computers," + rootDistinguishedName;
+            string orgUnitDistinguishedName = orgUnit + "," + rootDistinguishedName;
 
             // Create the computer distinguished name
             string DistinguishedName = $"CN=iME-{computerIdentifier},{orgUnitDistinguishedName}";

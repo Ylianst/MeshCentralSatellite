@@ -47,16 +47,14 @@ namespace MeshCentralSatellite
 
             if (DomainControllerServices.isComputerJoinedToDomain())
             {
-                DomainControllerServices dc = new DomainControllerServices();
-                List<string> securityGroups = dc.getSecurityGroups();
-                if ((securityGroups != null) && (securityGroups.Count > 0))
-                {
-                    foreach (string securityGroup in securityGroups)
-                    {
-                        ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
-                        securityGroupsCheckedListBox.Items.Add(x);
-                    }
-                }
+                // Setup the list of possible locations to place Intel AMT computers
+                List<string> computerLocations = DomainControllerServices.getDomainComputerLocations();
+                foreach (string location in computerLocations) { devLocationComboBox.Items.Add(location); }
+
+                // The default location is "CN=Computers"
+                int index = -1;
+                for (int i = 0; i < devLocationComboBox.Items.Count; i++) { if (devLocationComboBox.Items[i].ToString() == "CN=Computers") { index = i; } }
+                if (index >= 0) { devLocationComboBox.SelectedIndex = index; }
             } else {
                 securityGroupsCheckedListBox.Enabled = false;
             }
@@ -135,6 +133,23 @@ namespace MeshCentralSatellite
             }
         }
 
+        public string devLocation
+        {
+            get
+            {
+                return devLocationComboBox.Text;
+            }
+            set
+            {
+                int index = -1;
+                for (int i = 0; i < devLocationComboBox.Items.Count; i++) { if (devLocationComboBox.Items[i].ToString() == value) { index = i; } }
+                if (index >= 0) { devLocationComboBox.SelectedIndex = index; } else
+                {
+                    devLocationComboBox.Items.Add(value);
+                    devLocationComboBox.SelectedIndex = (devLocationComboBox.Items.Count - 1);
+                }
+            }
+        }
 
         public string certAltNames {
             get
@@ -260,6 +275,22 @@ namespace MeshCentralSatellite
                 templateComboBox.Items.Clear();
             }
             updateInfo();
+        }
+
+        private void devLocationComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Set the list of groups that the Intel AMT computers could join
+            securityGroupsCheckedListBox.Items.Clear();
+            DomainControllerServices dc = new DomainControllerServices(String.Join(",", DomainControllerServices.reverseStringArray(devLocationComboBox.Text.Split(','))));
+            List<string> securityGroups = dc.getSecurityGroups();
+            if ((securityGroups != null) && (securityGroups.Count > 0))
+            {
+                foreach (string securityGroup in securityGroups)
+                {
+                    ListViewItemObj x = new ListViewItemObj(DomainControllerServices.GetFirstCommonNameFromDistinguishedName(securityGroup), securityGroup);
+                    securityGroupsCheckedListBox.Items.Add(x);
+                }
+            }
         }
     }
 }

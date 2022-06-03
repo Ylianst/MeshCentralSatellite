@@ -31,6 +31,7 @@ namespace MeshCentralSatellite
         private string pass = null;
         private string loginkey = null;
         public string devNameType = null;
+        public string devLocation = null;
         public List<string> devSecurityGroups = null;
         public bool debug = false;
         public bool ignoreCert = false;
@@ -65,14 +66,16 @@ namespace MeshCentralSatellite
 
         private readonly string[] netAuthStrings = { "eap-tls", "eap-ttls/mschapv2", "peapv0/eap-mschapv2", "peapv1/eap-gtc", "eap-fast/mschapv2", "eap-fast/gtc", "eap-md5", "eap-psk", "eap-sim", "eap-aka", "eap-fast/tls" };
 
-        public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey)
+        public MeshCentralSatelliteServer(string host, string user, string pass, string loginkey, string devLocation)
         {
             this.host = host;
             this.user = user;
             this.pass = pass;
             this.loginkey = loginkey;
 
-            if (DomainControllerServices.isComputerJoinedToDomain()) { dc = new DomainControllerServices(); }
+            string devLocationReversed = null;
+            if (devLocation != null) { devLocationReversed = String.Join(",", DomainControllerServices.reverseStringArray(devLocation.Split(','))); }
+            if (DomainControllerServices.isComputerJoinedToDomain()) { dc = new DomainControllerServices(devLocationReversed); }
         }
 
         // caName must be of format: <COMPUTERNAME>\\<CANAME>

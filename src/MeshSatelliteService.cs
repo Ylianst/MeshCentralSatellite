@@ -88,6 +88,7 @@ namespace MeshCentralSatellite
             string argCATemplate = null;
             string argCertCommonName = null;
             string argCertAltNames = null;
+            string argDevLocation = null;
             List<string> argDevSecurityGroups = new List<string>();
 
             // Set TLS 1.2
@@ -123,6 +124,7 @@ namespace MeshCentralSatellite
                         if (key == "catemplate") { argCATemplate = val; }
                         if (key == "certcommonname") { argCertCommonName = val; }
                         if (key == "certaltnames") { argCertAltNames = val; }
+                        if (key == "devlocation") { argDevLocation = val; }
                         if (key == "devsecuritygroup") { argDevSecurityGroups.Add(val); }
                         if ((key == "log") && ((val == "1") || (val.ToLower() == "true"))) { log = true; }
                         if ((key == "debug") && ((val == "1") || (val.ToLower() == "true"))) { debug = true; }
@@ -142,7 +144,7 @@ namespace MeshCentralSatellite
             try
             {
                 // Create & start server
-                centralServer = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null);
+                centralServer = new MeshCentralSatelliteServer(argServerName, argUserName, argPassword, null, argDevLocation);
                 centralServer.devNameType = argDevNameType;
                 centralServer.devSecurityGroups = argDevSecurityGroups;
                 centralServer.debug = debug;

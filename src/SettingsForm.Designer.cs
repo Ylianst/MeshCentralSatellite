@@ -61,6 +61,9 @@
             this.dnsCheckBox = new System.Windows.Forms.CheckBox();
             this.dnCheckBox = new System.Windows.Forms.CheckBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.devLocationComboBox = new System.Windows.Forms.ComboBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.securityGroupsCheckedListBox = new System.Windows.Forms.CheckedListBox();
             this.groupBox1.SuspendLayout();
@@ -71,6 +74,7 @@
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.groupBox6.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -233,7 +237,7 @@
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(651, 341);
+            this.cancelButton.Location = new System.Drawing.Point(651, 385);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 10;
@@ -244,7 +248,7 @@
             // okButton
             // 
             this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.okButton.Location = new System.Drawing.Point(570, 341);
+            this.okButton.Location = new System.Drawing.Point(570, 385);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 9;
@@ -453,6 +457,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.groupBox6);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox5);
             // 
             // splitContainer1.Panel2
@@ -460,9 +465,41 @@
             this.splitContainer1.Panel2.Controls.Add(this.groupBox3);
             this.splitContainer1.Panel2.Controls.Add(this.groupBox2);
             this.splitContainer1.Panel2.Controls.Add(this.groupBox4);
-            this.splitContainer1.Size = new System.Drawing.Size(714, 323);
+            this.splitContainer1.Size = new System.Drawing.Size(714, 367);
             this.splitContainer1.SplitterDistance = 355;
             this.splitContainer1.TabIndex = 16;
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.label9);
+            this.groupBox6.Controls.Add(this.devLocationComboBox);
+            this.groupBox6.Location = new System.Drawing.Point(3, 156);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(349, 50);
+            this.groupBox6.TabIndex = 16;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "Domain";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(6, 22);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(48, 13);
+            this.label9.TabIndex = 17;
+            this.label9.Text = "Location";
+            // 
+            // devLocationComboBox
+            // 
+            this.devLocationComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.devLocationComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.devLocationComboBox.FormattingEnabled = true;
+            this.devLocationComboBox.Location = new System.Drawing.Point(115, 19);
+            this.devLocationComboBox.Name = "devLocationComboBox";
+            this.devLocationComboBox.Size = new System.Drawing.Size(228, 21);
+            this.devLocationComboBox.TabIndex = 16;
+            this.devLocationComboBox.SelectedIndexChanged += new System.EventHandler(this.devLocationComboBox_SelectedIndexChanged);
             // 
             // groupBox5
             // 
@@ -470,9 +507,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox5.Controls.Add(this.securityGroupsCheckedListBox);
-            this.groupBox5.Location = new System.Drawing.Point(3, 156);
+            this.groupBox5.Location = new System.Drawing.Point(3, 212);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(349, 164);
+            this.groupBox5.Size = new System.Drawing.Size(349, 152);
             this.groupBox5.TabIndex = 0;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Security Groups";
@@ -485,7 +522,7 @@
             this.securityGroupsCheckedListBox.FormattingEnabled = true;
             this.securityGroupsCheckedListBox.Location = new System.Drawing.Point(9, 19);
             this.securityGroupsCheckedListBox.Name = "securityGroupsCheckedListBox";
-            this.securityGroupsCheckedListBox.Size = new System.Drawing.Size(334, 139);
+            this.securityGroupsCheckedListBox.Size = new System.Drawing.Size(334, 124);
             this.securityGroupsCheckedListBox.Sorted = true;
             this.securityGroupsCheckedListBox.TabIndex = 0;
             // 
@@ -495,7 +532,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(738, 376);
+            this.ClientSize = new System.Drawing.Size(738, 420);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.okButton);
@@ -518,6 +555,8 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox6.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -559,5 +598,8 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.CheckedListBox securityGroupsCheckedListBox;
+        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.ComboBox devLocationComboBox;
     }
 }
